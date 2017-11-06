@@ -30,3 +30,17 @@
 *.exe
 *.out
 *.app
+
+
+# Created by https://www.gitignore.io/api/codeblocks
+
+### CodeBlocks ###
+# specific to CodeBlocks IDE
+*.layout
+*.depend
+
+# generated directories
+bin/
+obj/
+
+# End of https://www.gitignore.io/api/codeblocks
