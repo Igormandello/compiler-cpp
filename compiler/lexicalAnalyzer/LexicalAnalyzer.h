@@ -9,4 +9,6 @@ class LexicalAnalyzer
 	char hasMoreSlices();
 	char* getName();
 	int getValue();
+  private:
+    FILE* file;
 };
