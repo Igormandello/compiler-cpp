@@ -14,35 +14,50 @@ LexicalAnalyzer::LexicalAnalyzer(char* c)
 
 SliceType LexicalAnalyzer::nextSlice()
 {
+    char* sliceAux;
     char* slice = (char*)calloc(1, sizeof(char));
     char c[2];
+    int x = 1;
 
     c[0] = fgetc(this->file);
     c[1] = '\0';
+    while ((c[0] == ' ' || c[0] == '\n' || c[0] == '\t') && c[0] != EOF)
+        c[0] = fgetc(this->file);
+
     while (c[0] != ' ' && c[0] != '\n' && c[0] != '\t' && c[0] != EOF)
     {
+        sliceAux = (char*)calloc(x++, sizeof(char));
+        strcpy(sliceAux, slice);
+
+        slice = (char*)calloc(x, sizeof(char));
+        strcpy(slice, sliceAux);
         strcat(slice, &c[0]);
 
         if (!feof(this->file))
             c[0] = fgetc(this->file);
     }
 
-    if (!strcmp(slice, "programm")
-        return Program;
-    else if (!strcmp(slice, "variable"))
-        return Variable;
-    else if (!strcmp(slice, "begin"))
-        return Begin;
+    SliceType ret = Unknown;
+    if (!strcmp(slice, "programm"))
+        ret = Program;
+    else if (!strcmp(slice, "var"))
+        ret = Variable;
+    else if (!strcmp(slice, "anfangen"))
+        ret = Begin;
     else if (!strcmp(slice, "ende"))
-        return End;
+        ret = End;
     else
     {
         for (int i = 0; i < strlen(slice); i++)
             if (!isdigit(slice[i]))
-                return Identifier;
+                ret = Identifier;
 
-        return Number;
+        if (ret == Unknown)
+            ret = Number;
     }
+
+    free(slice);
+    return ret;
 }
 
 char LexicalAnalyzer::hasMoreSlices()

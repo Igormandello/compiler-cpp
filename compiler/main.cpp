@@ -4,9 +4,11 @@
 
 int main()
 {
+    char* test = new char[6] { 'p', 'v', 'b', 'e', 'i', 'n' };
     LexicalAnalyzer* l = new LexicalAnalyzer("C://temp//eae.txt");
-    printf("%i", l->hasMoreSlices());
 
-    printf("\n%s", (l->nextSlice() == Unknown ? "eae" : "opa"));
+    while (l->hasMoreSlices())
+        printf("%c ", test[l->nextSlice()]);
+
     return 0;
 }
