@@ -32,9 +32,9 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
-		<Unit filename="lexicalAnalyzer/LexicalAnalyzer.cpp" />
-		<Unit filename="lexicalAnalyzer/LexicalAnalyzer.h" />
-		<Unit filename="lexicalAnalyzer/SliceType.h" />
+		<Unit filename="lexer/Lexer.cpp" />
+		<Unit filename="lexer/Lexer.h" />
+		<Unit filename="lexer/SliceType.h" />
 		<Unit filename="main.cpp" />
 		<Extensions>
 			<code_completion />

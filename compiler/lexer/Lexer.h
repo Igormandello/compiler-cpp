@@ -1,12 +1,11 @@
-#include <iostream>
 #include "SliceType.h"
 
-class LexicalAnalyzer
+class Lexer
 {
   public:
-	LexicalAnalyzer(char* fileName);
-	SliceType nextSlice();
-	char hasMoreSlices();
+	Lexer(char* fileName);
+	SliceType nextSlice(bool consume);
+	bool hasMoreSlices();
 	char* getName();
 	int getValue();
   private:

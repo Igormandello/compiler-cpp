@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "LexicalAnalyzer.h"
+#include "Lexer.h"
 
-LexicalAnalyzer::LexicalAnalyzer(char* c)
+Lexer::Lexer(char* c)
 {
     FILE* temp = fopen(c, "r");
 
@@ -12,32 +12,42 @@ LexicalAnalyzer::LexicalAnalyzer(char* c)
         this->file = fopen(c, "r");
 }
 
-SliceType LexicalAnalyzer::nextSlice()
+SliceType Lexer::nextSlice(bool consume)
 {
     free(this->actualSlice);
 
-    char* sliceAux;
-    char* slice = (char*)calloc(1, sizeof(char));
+    char* sliceAux,
+        * slice = (char*)calloc(1, sizeof(char)),
+        * spaces = (char*)calloc(1, sizeof(char));
     char c[2];
-    int x = 1;
 
     c[0] = fgetc(this->file);
     c[1] = '\0';
     while ((c[0] == ' ' || c[0] == '\n' || c[0] == '\t') && c[0] != EOF)
+    {
+        sliceAux = (char*)calloc(strlen(spaces), sizeof(char));
+        strcpy(sliceAux, spaces);
+
+        spaces = (char*)calloc(strlen(spaces) + 1, sizeof(char));
+        strcpy(spaces, sliceAux);
+        strcat(spaces, &c[0]);
+
         c[0] = fgetc(this->file);
+    }
 
     while (c[0] != ' ' && c[0] != '\n' && c[0] != '\t' && c[0] != EOF)
     {
-        sliceAux = (char*)calloc(x++, sizeof(char));
+        sliceAux = (char*)calloc(strlen(slice), sizeof(char));
         strcpy(sliceAux, slice);
 
-        slice = (char*)calloc(x, sizeof(char));
+        slice = (char*)calloc(strlen(slice) + 1, sizeof(char));
         strcpy(slice, sliceAux);
         strcat(slice, &c[0]);
 
         if (!feof(this->file))
             c[0] = fgetc(this->file);
     }
+    ungetc(c[0], this->file);
 
     SliceType ret = Unknown;
     if (!strcmp(slice, "programm"))
@@ -66,30 +76,41 @@ SliceType LexicalAnalyzer::nextSlice()
         }
     }
 
+    if (!consume)
+    {
+        for (int n = strlen(slice) - 1; n >= 0; n--)
+            ungetc(slice[n], this->file);
+
+        for (int n = strlen(spaces) - 1; n >= 0; n--)
+            ungetc(spaces[n], this->file);
+    }
+
+    free(spaces);
+    free(sliceAux);
     free(slice);
     return ret;
 }
 
-char LexicalAnalyzer::hasMoreSlices()
+bool Lexer::hasMoreSlices()
 {
     char c = fgetc(this->file);
 
     if (feof(file))
     {
         ungetc(c, this->file);
-        return 0;
+        return false;
     }
 
     ungetc(c, this->file);
-    return 1;
+    return true;
 }
 
-char* LexicalAnalyzer::getName()
+char* Lexer::getName()
 {
     return this->actualSlice;
 }
 
-int LexicalAnalyzer::getValue()
+int Lexer::getValue()
 {
     return atoi(this->actualSlice);
 }
