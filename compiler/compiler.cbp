@@ -36,6 +36,8 @@
 		<Unit filename="lexer/Lexer.h" />
 		<Unit filename="lexer/SliceType.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="parser/Parser.cpp" />
+		<Unit filename="parser/Parser.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />
