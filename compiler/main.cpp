@@ -5,15 +5,15 @@
 
 int main()
 {
-    Lexer* l = new Lexer("C://temp//eae.txt");
+    Lexer  l ("C://temp//eae.txt");
 
-    while (l->hasMoreSlices())
+    while (l.hasMoreSlices())
     {
-        SliceType s = l->nextSlice(true);
+        SliceType s = l.nextSlice(true);
         if (s == Number)
-            printf("%i", l->getValue());
+            printf("%i", l.getValue());
         else if (s == Identifier)
-            printf("%s", l->getName());
+            printf("%s", l.getName());
     }
 
     return 0;

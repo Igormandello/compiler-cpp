@@ -1,8 +1,13 @@
+#ifndef _LEXER_INCLUDED_
+
+#define _LEXER_INCLUDED_
+#include <stdio.h>
 #include "SliceType.h"
 
 class Lexer
 {
   public:
+    Lexer();
 	Lexer(char* fileName);
 	SliceType nextSlice(bool consume);
 	bool hasMoreSlices();
@@ -12,3 +17,5 @@ class Lexer
     FILE* file;
     char* actualSlice;
 };
+
+#endif

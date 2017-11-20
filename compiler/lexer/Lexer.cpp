@@ -4,6 +4,9 @@
 #include <string.h>
 #include "Lexer.h"
 
+Lexer::Lexer()
+{}
+
 Lexer::Lexer(char* c)
 {
     FILE* temp = fopen(c, "r");
@@ -46,6 +49,9 @@ SliceType Lexer::nextSlice(bool consume)
 
         if (!feof(this->file))
             c[0] = fgetc(this->file);
+
+        if (c[0] == '.' || c[0] == ';')
+            break;
     }
     ungetc(c[0], this->file);
 
@@ -54,10 +60,18 @@ SliceType Lexer::nextSlice(bool consume)
         ret = Program;
     else if (!strcmp(slice, "var"))
         ret = Variable;
+    else if (!strcmp(slice, "verfahren"))
+        ret = Procedure;
+    else if (!strcmp(slice, "funktion"))
+        ret = Function;
     else if (!strcmp(slice, "anfangen"))
         ret = Begin;
     else if (!strcmp(slice, "ende"))
         ret = End;
+    else if (!strcmp(slice, "."))
+        ret = Point;
+    else if (!strcmp(slice, ";"))
+        ret = Semicolon;
     else
     {
         this->actualSlice = (char*)calloc(strlen(slice), sizeof(char));
