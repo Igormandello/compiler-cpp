@@ -11,4 +11,5 @@ class LexicalAnalyzer
 	int getValue();
   private:
     FILE* file;
+    char* actualSlice;
 };

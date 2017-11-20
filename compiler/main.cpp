@@ -8,7 +8,13 @@ int main()
     LexicalAnalyzer* l = new LexicalAnalyzer("C://temp//eae.txt");
 
     while (l->hasMoreSlices())
-        printf("%c ", test[l->nextSlice()]);
+    {
+        SliceType s = l->nextSlice();
+        if (s == Number)
+            printf("%i", l->getValue());
+        else if (s == Identifier)
+            printf("%s", l->getName());
+    }
 
     return 0;
 }

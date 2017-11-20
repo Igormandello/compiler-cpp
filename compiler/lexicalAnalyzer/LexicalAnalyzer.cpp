@@ -14,6 +14,8 @@ LexicalAnalyzer::LexicalAnalyzer(char* c)
 
 SliceType LexicalAnalyzer::nextSlice()
 {
+    free(this->actualSlice);
+
     char* sliceAux;
     char* slice = (char*)calloc(1, sizeof(char));
     char c[2];
@@ -48,12 +50,20 @@ SliceType LexicalAnalyzer::nextSlice()
         ret = End;
     else
     {
+        this->actualSlice = (char*)calloc(strlen(slice), sizeof(char));
         for (int i = 0; i < strlen(slice); i++)
             if (!isdigit(slice[i]))
+            {
+                strcpy(this->actualSlice, slice);
                 ret = Identifier;
+                break;
+            }
 
         if (ret == Unknown)
+        {
+            strcpy(this->actualSlice, slice);
             ret = Number;
+        }
     }
 
     free(slice);
@@ -76,10 +86,10 @@ char LexicalAnalyzer::hasMoreSlices()
 
 char* LexicalAnalyzer::getName()
 {
-
+    return this->actualSlice;
 }
 
 int LexicalAnalyzer::getValue()
 {
-
+    return atoi(this->actualSlice);
 }
