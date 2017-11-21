@@ -8,7 +8,7 @@ int main()
 {
     bool error = false;
 
-    Lexer  l ("C://temp//eae.txt");
+    Lexer  l ("C://temp//Vierte.Reich");
     Parser p (l);
 
     try
@@ -30,10 +30,10 @@ int main()
         //prox = l.nextSlice(false);
         //loop end
     }
-    catch (std::exception const& e)
+    catch (std::exception const &e)
     {
         error = true;
-        cerr << "Exception: " << e.what() << endl;
+        cerr << e.what() << endl;
     }
 
     if (!error)

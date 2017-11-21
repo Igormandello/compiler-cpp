@@ -13,9 +13,11 @@ class Lexer
 	bool hasMoreSlices();
 	char* getName();
 	int getValue();
+	void throwError(char* msg);
   private:
     FILE* file;
     char* actualSlice;
+    int actualLine;
 };
 
 #endif

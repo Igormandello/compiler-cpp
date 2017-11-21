@@ -9,8 +9,9 @@ Lexer::Lexer()
 
 Lexer::Lexer(char* c)
 {
-    FILE* temp = fopen(c, "r");
+    this->actualLine = 1;
 
+    FILE* temp = fopen(c, "r");
     if (temp != NULL)
         this->file = fopen(c, "r");
 }
@@ -35,6 +36,8 @@ SliceType Lexer::nextSlice(bool consume)
         spaces = (char*)calloc(strlen(spaces) + 1, sizeof(char));
         strcpy(spaces, sliceAux);
         strcat(spaces, &c[0]);
+        if (c[0] == '\n')
+            this->actualLine++;
 
         c[0] = fgetc(this->file);
     }
@@ -109,6 +112,8 @@ SliceType Lexer::nextSlice(bool consume)
 
         for (int n = strlen(spaces) - 1; n >= 0; n--)
             ungetc(spaces[n], this->file);
+            if (spacesStr[n] == '\n')
+                this->actualLine--;
     }
 
     free(sliceAux);
@@ -138,4 +143,12 @@ char* Lexer::getName()
 int Lexer::getValue()
 {
     return atoi(this->actualSlice);
+}
+
+void Lexer::throwError(char* msg)
+{
+    std::stringstream sstm;
+    sstm << "Exception on line " << this->actualLine << ": " << msg;
+
+    throw std::invalid_argument(sstm.str());
 }
