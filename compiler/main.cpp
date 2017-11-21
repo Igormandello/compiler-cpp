@@ -8,15 +8,21 @@ int main()
     Lexer  l ("C://temp//eae.txt");
     Parser p (l);
 
-    while (l.hasMoreSlices())
-    {
-        SliceType s = l.nextSlice(true);
-        //p.compileMain();
-        if (s == Number)
-            printf("%i", l.getValue());
-        else if (s == Identifier)
-            printf("%s", l.getName());
-    }
+    p.compileProgramInit();
+    SliceType next = l.nextSlice(false);
+    //if(next == Variable)
+    //{
+    //   p.compileVariable();
+    //   next = l.nextSlice(false);
+    //}
+    //main loop
+    //switch(next)
+    //{
+    //  Procedure: p.compileProcedure();
+    //  Function : p.compileFunction();
+    //}
+    //prox = l.nextSlice(false);
+    //loop end
 
     return 0;
 }

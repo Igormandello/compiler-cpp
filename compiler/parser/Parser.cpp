@@ -5,6 +5,11 @@ Parser::Parser(Lexer l)
     this->lexer = l;
 }
 
+void Parser::compileProgramInit()
+{
+
+}
+
 void Parser::compileMain()
 {
   compileCompoundCommand();
@@ -16,5 +21,13 @@ void Parser::compileMain()
 
 void Parser::compileCompoundCommand()
 {
+    SliceType next;
 
+    next = this->lexer.nextSlice(true);
+    if (next != Begin)
+        throw "Missing opening";
+
+    next = this->lexer.nextSlice(true);
+    if (next != End)
+        throw "Missing closing";
 }
