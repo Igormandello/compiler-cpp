@@ -19,7 +19,7 @@ Lexer::Lexer(char* c)
 
 SliceType Lexer::nextSlice(bool consume)
 {
-    std::stringstream test, spaces;
+    std::stringstream slice, spaces;
     char c[2];
 
     if (feof(this->file))
@@ -37,32 +37,25 @@ SliceType Lexer::nextSlice(bool consume)
         c[0] = fgetc(this->file);
     }
 
-    if (c[0] == '.' || c[0] == ';' || c[0] == ':')
-        test << c[0];
+    if (c[0] == '.' || c[0] == ';' || c[0] == ':' || c[0] == ',')
+        slice << c[0];
     else
     {
         while (c[0] != ' ' && c[0] != '\n' && c[0] != '\t' && c[0] != EOF)
         {
-            test << c[0];
-
-            //sliceAux = (char*)calloc(strlen(slice), sizeof(char));
-            //strcpy(sliceAux, slice);
-
-            //slice = (char*)calloc(strlen(slice) + 1, sizeof(char));
-            //strcpy(slice, sliceAux);
-            //strcat(slice, &c[0]);
+            slice << c[0];
 
             if (!feof(this->file))
                 c[0] = fgetc(this->file);
 
-            if (c[0] == '.' || c[0] == ';' || c[0] == ':')
+            if (c[0] == '.' || c[0] == ';' || c[0] == ':' || c[0] == ',')
                 break;
         }
 
         ungetc(c[0], this->file);
     }
 
-    const std::string tmpSlice = test.str();
+    const std::string tmpSlice = slice.str();
     const char* sliceStr  = tmpSlice.c_str();
 
     SliceType ret = Unknown;
@@ -84,6 +77,8 @@ SliceType Lexer::nextSlice(bool consume)
         ret = Semicolon;
     else if (!strcmp(sliceStr, ":"))
         ret = Colon;
+    else if (!strcmp(sliceStr, ","))
+        ret = Comma;
     else
     {
         this->actualSlice = (char*)calloc(strlen(sliceStr), sizeof(char));

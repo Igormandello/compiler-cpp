@@ -13,6 +13,7 @@ typedef
         Point,
         Semicolon,
         Colon,
+        Comma,
         Identifier,
         Number,
         Unknown

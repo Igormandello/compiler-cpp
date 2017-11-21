@@ -34,17 +34,34 @@ void Parser::compileVariable()
     if (next != Identifier)
         this->lexer.throwError("Unexpected token, expected an identifier");
 
-    next = this->lexer.nextSlice(true);
-    if (next != Colon)
-        this->lexer.throwError("Unexpected token, expected a colon");
+    while (next == Identifier)
+    {
+        next = this->lexer.nextSlice(true);
+        while (next == Comma)
+        {
+            next = this->lexer.nextSlice(true);
+            if (next != Identifier)
+                this->lexer.throwError("Unexpected token, expected an identifier after comma");
 
-    next = this->lexer.nextSlice(true);
-    if (next != Identifier)
-        this->lexer.throwError("Unexpected token, expected a type identifier");
+            next = this->lexer.nextSlice(true);
+        }
 
-    next = this->lexer.nextSlice(true);
-    if (next != Semicolon)
-        this->lexer.throwError("Unexpected token, expected a semicolon");
+        if (next != Colon)
+            this->lexer.throwError("Unexpected token, expected a colon");
+
+        next = this->lexer.nextSlice(true);
+        if (next != Identifier)
+            this->lexer.throwError("Unexpected token, expected a type identifier");
+
+        next = this->lexer.nextSlice(true);
+        if (next != Semicolon)
+            this->lexer.throwError("Unexpected token, expected a semicolon");
+
+        next = this->lexer.nextSlice(false);
+        if (next == Identifier)
+            this->lexer.nextSlice(true);
+    }
+
 }
 
 void Parser::compileProcedure()
