@@ -1,5 +1,7 @@
 #include <iostream>
+#include <stdlib.h>
 #include <stdexcept>
+#include <string>
 #include "Parser.h"
 
 Parser::Parser(Lexer l)
@@ -9,7 +11,17 @@ Parser::Parser(Lexer l)
 
 void Parser::compileProgramInit()
 {
+    SliceType next = this->lexer.nextSlice(true);
+    if (next != Program)
+        this->lexer.throwError("Expected a program initialization");
 
+    next = this->lexer.nextSlice(true);
+    if (next != Identifier)
+        this->lexer.throwError("Unexpected token, expected a program identifier");
+
+    next = this->lexer.nextSlice(true);
+    if (next != Semicolon)
+        this->lexer.throwError("Unexpected token, expected a semicolon");
 }
 
 void Parser::compileVariable()
