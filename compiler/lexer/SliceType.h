@@ -12,6 +12,7 @@ typedef
         End,
         Point,
         Semicolon,
+        Colon,
         Identifier,
         Number,
         Unknown

@@ -17,8 +17,6 @@ Lexer::Lexer(char* c)
 
 SliceType Lexer::nextSlice(bool consume)
 {
-    free(this->actualSlice);
-
     char* sliceAux,
         * slice = (char*)calloc(1, sizeof(char)),
         * spaces = (char*)calloc(1, sizeof(char));
@@ -50,7 +48,7 @@ SliceType Lexer::nextSlice(bool consume)
         if (!feof(this->file))
             c[0] = fgetc(this->file);
 
-        if (c[0] == '.' || c[0] == ';')
+        if (c[0] == '.' || c[0] == ';' || c[0] == ':')
             break;
     }
     ungetc(c[0], this->file);
@@ -72,6 +70,8 @@ SliceType Lexer::nextSlice(bool consume)
         ret = Point;
     else if (!strcmp(slice, ";"))
         ret = Semicolon;
+    else if (!strcmp(slice, ":"))
+        ret = Colon;
     else
     {
         this->actualSlice = (char*)calloc(strlen(slice), sizeof(char));
