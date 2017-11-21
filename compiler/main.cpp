@@ -6,6 +6,8 @@
 using namespace std;
 int main()
 {
+    bool error = false;
+
     Lexer  l ("C://temp//eae.txt");
     Parser p (l);
 
@@ -30,9 +32,12 @@ int main()
     }
     catch (std::exception const& e)
     {
+        error = true;
         cerr << "Exception: " << e.what() << endl;
     }
-    cout << "So far, so good";
+
+    if (!error)
+        cout << "So far, so good";
 
     return 0;
 }

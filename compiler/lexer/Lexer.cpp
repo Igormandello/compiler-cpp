@@ -18,9 +18,12 @@ Lexer::Lexer(char* c)
 SliceType Lexer::nextSlice(bool consume)
 {
     char* sliceAux,
-        * slice = (char*)calloc(1, sizeof(char)),
-        * spaces = (char*)calloc(1, sizeof(char));
+        * slice = (char*)calloc(0, sizeof(char)),
+        * spaces = (char*)calloc(0, sizeof(char));
     char c[2];
+
+    if (feof(this->file))
+        return Unknown;
 
     c[0] = fgetc(this->file);
     c[1] = '\0';
@@ -36,22 +39,31 @@ SliceType Lexer::nextSlice(bool consume)
         c[0] = fgetc(this->file);
     }
 
-    while (c[0] != ' ' && c[0] != '\n' && c[0] != '\t' && c[0] != EOF)
+    if (c[0] == '.' || c[0] == ';' || c[0] == ':')
     {
-        sliceAux = (char*)calloc(strlen(slice), sizeof(char));
-        strcpy(sliceAux, slice);
-
-        slice = (char*)calloc(strlen(slice) + 1, sizeof(char));
-        strcpy(slice, sliceAux);
+        slice = (char*)calloc(1, sizeof(char));
         strcat(slice, &c[0]);
-
-        if (!feof(this->file))
-            c[0] = fgetc(this->file);
-
-        if (c[0] == '.' || c[0] == ';' || c[0] == ':')
-            break;
     }
-    ungetc(c[0], this->file);
+    else
+    {
+        while (c[0] != ' ' && c[0] != '\n' && c[0] != '\t' && c[0] != EOF)
+        {
+            sliceAux = (char*)calloc(strlen(slice), sizeof(char));
+            strcpy(sliceAux, slice);
+
+            slice = (char*)calloc(strlen(slice) + 1, sizeof(char));
+            strcpy(slice, sliceAux);
+            strcat(slice, &c[0]);
+
+            if (!feof(this->file))
+                c[0] = fgetc(this->file);
+
+            if (c[0] == '.' || c[0] == ';' || c[0] == ':')
+                break;
+        }
+
+        ungetc(c[0], this->file);
+    }
 
     SliceType ret = Unknown;
     if (!strcmp(slice, "programm"))
@@ -99,7 +111,6 @@ SliceType Lexer::nextSlice(bool consume)
             ungetc(spaces[n], this->file);
     }
 
-    free(spaces);
     free(sliceAux);
     free(slice);
     return ret;

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdexcept>
 #include "Parser.h"
 
 Parser::Parser(Lexer l)
