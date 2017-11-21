@@ -26,26 +26,25 @@ void Parser::compileProgramInit()
 
 void Parser::compileVariable()
 {
-    SliceType next = this->lexer.nextSlice(false);
-    if (next == Variable)
-    {
-        this->lexer.nextSlice(true);
-        next = this->lexer.nextSlice(true);
-        if (next != Identifier)
-            throw std::invalid_argument("Unexpected token, expected an identifier");
+    SliceType next = this->lexer.nextSlice(true);
+    if (next != Variable)
+        this->lexer.throwError("Expected a variable declaration");
 
-        next = this->lexer.nextSlice(true);
-        if (next != Colon)
-            throw std::invalid_argument("Unexpected token, expected a colon");
+    next = this->lexer.nextSlice(true);
+    if (next != Identifier)
+        this->lexer.throwError("Unexpected token, expected an identifier");
 
-        next = this->lexer.nextSlice(true);
-        if (next != Identifier)
-            throw std::invalid_argument("Unexpected token, expected a type identifier");
+    next = this->lexer.nextSlice(true);
+    if (next != Colon)
+        this->lexer.throwError("Unexpected token, expected a colon");
 
-        next = this->lexer.nextSlice(true);
-        if (next != Semicolon)
-            throw std::invalid_argument("Unexpected token, expected a semicolon");
-    }
+    next = this->lexer.nextSlice(true);
+    if (next != Identifier)
+        this->lexer.throwError("Unexpected token, expected a type identifier");
+
+    next = this->lexer.nextSlice(true);
+    if (next != Semicolon)
+        this->lexer.throwError("Unexpected token, expected a semicolon");
 }
 
 void Parser::compileProcedure()
@@ -64,7 +63,7 @@ void Parser::compileMain()
 
   SliceType next = this->lexer.nextSlice(true);
   if (next != Point)
-    throw "Missing point after main";
+    this->lexer.throwError("Missing point after main");
 }
 
 void Parser::compileCompoundCommand()
@@ -73,11 +72,11 @@ void Parser::compileCompoundCommand()
 
     next = this->lexer.nextSlice(true);
     if (next != Begin)
-        throw "Missing opening";
+        this->lexer.throwError("Missing opening");
 
     //Commands
 
     next = this->lexer.nextSlice(true);
     if (next != End)
-        throw "Missing closing";
+        this->lexer.throwError("Missing closing");
 }
