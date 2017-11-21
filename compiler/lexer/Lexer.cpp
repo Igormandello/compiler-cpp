@@ -1,7 +1,8 @@
 #include <iostream>
+#include <sstream>
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
+#include <stdexcept>
 #include "Lexer.h"
 
 Lexer::Lexer()
@@ -18,9 +19,7 @@ Lexer::Lexer(char* c)
 
 SliceType Lexer::nextSlice(bool consume)
 {
-    char* sliceAux,
-        * slice = (char*)calloc(0, sizeof(char)),
-        * spaces = (char*)calloc(0, sizeof(char));
+    std::stringstream test, spaces;
     char c[2];
 
     if (feof(this->file))
@@ -30,12 +29,8 @@ SliceType Lexer::nextSlice(bool consume)
     c[1] = '\0';
     while ((c[0] == ' ' || c[0] == '\n' || c[0] == '\t') && c[0] != EOF)
     {
-        sliceAux = (char*)calloc(strlen(spaces), sizeof(char));
-        strcpy(sliceAux, spaces);
+        spaces << c[0];
 
-        spaces = (char*)calloc(strlen(spaces) + 1, sizeof(char));
-        strcpy(spaces, sliceAux);
-        strcat(spaces, &c[0]);
         if (c[0] == '\n')
             this->actualLine++;
 
@@ -43,20 +38,19 @@ SliceType Lexer::nextSlice(bool consume)
     }
 
     if (c[0] == '.' || c[0] == ';' || c[0] == ':')
-    {
-        slice = (char*)calloc(1, sizeof(char));
-        strcat(slice, &c[0]);
-    }
+        test << c[0];
     else
     {
         while (c[0] != ' ' && c[0] != '\n' && c[0] != '\t' && c[0] != EOF)
         {
-            sliceAux = (char*)calloc(strlen(slice), sizeof(char));
-            strcpy(sliceAux, slice);
+            test << c[0];
 
-            slice = (char*)calloc(strlen(slice) + 1, sizeof(char));
-            strcpy(slice, sliceAux);
-            strcat(slice, &c[0]);
+            //sliceAux = (char*)calloc(strlen(slice), sizeof(char));
+            //strcpy(sliceAux, slice);
+
+            //slice = (char*)calloc(strlen(slice) + 1, sizeof(char));
+            //strcpy(slice, sliceAux);
+            //strcat(slice, &c[0]);
 
             if (!feof(this->file))
                 c[0] = fgetc(this->file);
@@ -68,56 +62,62 @@ SliceType Lexer::nextSlice(bool consume)
         ungetc(c[0], this->file);
     }
 
+    const std::string tmpSlice = test.str();
+    const char* sliceStr  = tmpSlice.c_str();
+
     SliceType ret = Unknown;
-    if (!strcmp(slice, "programm"))
+    if (!strcmp(sliceStr, "Programm"))
         ret = Program;
-    else if (!strcmp(slice, "var"))
+    else if (!strcmp(sliceStr, "var"))
         ret = Variable;
-    else if (!strcmp(slice, "verfahren"))
+    else if (!strcmp(sliceStr, "verfahren"))
         ret = Procedure;
-    else if (!strcmp(slice, "funktion"))
+    else if (!strcmp(sliceStr, "funktion"))
         ret = Function;
-    else if (!strcmp(slice, "anfangen"))
+    else if (!strcmp(sliceStr, "anfangen"))
         ret = Begin;
-    else if (!strcmp(slice, "ende"))
+    else if (!strcmp(sliceStr, "ende"))
         ret = End;
-    else if (!strcmp(slice, "."))
+    else if (!strcmp(sliceStr, "."))
         ret = Point;
-    else if (!strcmp(slice, ";"))
+    else if (!strcmp(sliceStr, ";"))
         ret = Semicolon;
-    else if (!strcmp(slice, ":"))
+    else if (!strcmp(sliceStr, ":"))
         ret = Colon;
     else
     {
-        this->actualSlice = (char*)calloc(strlen(slice), sizeof(char));
-        for (int i = 0; i < strlen(slice); i++)
-            if (!isdigit(slice[i]))
+        this->actualSlice = (char*)calloc(strlen(sliceStr), sizeof(char));
+        for (int i = 0; i < strlen(sliceStr); i++)
+            if (!isdigit(sliceStr[i]))
             {
-                strcpy(this->actualSlice, slice);
+                strcpy(this->actualSlice, sliceStr);
                 ret = Identifier;
                 break;
             }
 
         if (ret == Unknown)
         {
-            strcpy(this->actualSlice, slice);
+            strcpy(this->actualSlice, sliceStr);
             ret = Number;
         }
     }
 
     if (!consume)
     {
-        for (int n = strlen(slice) - 1; n >= 0; n--)
-            ungetc(slice[n], this->file);
+        for (int n = strlen(sliceStr) - 1; n >= 0; n--)
+            ungetc(sliceStr[n], this->file);
 
-        for (int n = strlen(spaces) - 1; n >= 0; n--)
-            ungetc(spaces[n], this->file);
+        const std::string tmpSpace = spaces.str();
+        const char* spacesStr = tmpSpace.c_str();
+        for (int n = strlen(spacesStr) - 1; n >= 0; n--)
+        {
             if (spacesStr[n] == '\n')
                 this->actualLine--;
+
+            ungetc(spacesStr[n], this->file);
+        }
     }
 
-    free(sliceAux);
-    free(slice);
     return ret;
 }
 
