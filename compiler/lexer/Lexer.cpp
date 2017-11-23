@@ -17,6 +17,12 @@ Lexer::Lexer(char* c)
         this->file = fopen(c, "r");
 }
 
+Lexer::~Lexer()
+{
+    free(this->actualSlice);
+    fclose(this->file);
+}
+
 SliceType Lexer::nextSlice(bool consume)
 {
     std::stringstream slice, spaces;

@@ -7,20 +7,12 @@ using namespace std;
 int main()
 {
     bool error = false;
-
-    Lexer  l ("C://temp//Vierte.Reich");
-    Parser p (l);
+    Parser p ("C://temp//Vierte.Reich");
 
     try
     {
         p.compileProgramInit();
-
-        SliceType next = l.nextSlice(false);
-        if(next == Variable)
-        {
-           p.compileVariable();
-           next = l.nextSlice(false);
-        }
+        p.compileVariable();
         //main loop
         //switch(next)
         //{

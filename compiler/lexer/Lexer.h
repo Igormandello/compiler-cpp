@@ -7,8 +7,8 @@
 class Lexer
 {
   public:
-    Lexer();
 	Lexer(char* fileName);
+	~Lexer();
 	SliceType nextSlice(bool consume);
 	bool hasMoreSlices();
 	char* getName();
