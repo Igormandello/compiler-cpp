@@ -5,8 +5,56 @@
 #include <stdexcept>
 #include "Lexer.h"
 
-Lexer::Lexer()
-{}
+char* Lexer::reserved[] =
+{
+    "programm",
+    "var",
+    "verfahren",
+    "funktion",
+    "ob",
+    "dann",
+    "solange",
+    "machen",
+    "anfagen",
+    "ende",
+    ".",
+    ";",
+    ":",
+    ",",
+    "(",
+    ")",
+    "=",
+    ">",
+    "-",
+    "!",
+    "+",
+    "-",
+    "*",
+    "/",
+    "schreiben",
+    "lesen",
+    "wahr",
+    "unwahr",
+    "nichtig"
+};
+
+char Lexer::symbols[] =
+{
+    '.',
+    ';',
+    ':',
+    ',',
+    '(',
+    ')',
+    '=',
+    '>',
+    '-',
+    '!',
+    '+',
+    '-',
+    '*',
+    '/'
+};
 
 Lexer::Lexer(char* c)
 {
@@ -43,9 +91,16 @@ SliceType Lexer::nextSlice(bool consume)
         c[0] = fgetc(this->file);
     }
 
-    if (c[0] == '.' || c[0] == ';' || c[0] == ':' || c[0] == ',')
-        slice << c[0];
-    else
+    bool isSymbol = false;
+    for (int n = 0; n < SYMBOLS_LENGHT; n++)
+        if (c[0] == Lexer::symbols[n])
+        {
+            slice << c[0];
+            isSymbol = true;
+            break;
+        }
+
+    if (!isSymbol)
     {
         while (c[0] != ' ' && c[0] != '\n' && c[0] != '\t' && c[0] != EOF)
         {
@@ -54,7 +109,14 @@ SliceType Lexer::nextSlice(bool consume)
             if (!feof(this->file))
                 c[0] = fgetc(this->file);
 
-            if (c[0] == '.' || c[0] == ';' || c[0] == ':' || c[0] == ',')
+            for (int n = 0; n < SYMBOLS_LENGHT; n++)
+                if (c[0] == Lexer::symbols[n])
+                {
+                    isSymbol = true;
+                    break;
+                }
+
+            if (isSymbol)
                 break;
         }
 
@@ -65,27 +127,14 @@ SliceType Lexer::nextSlice(bool consume)
     const char* sliceStr  = tmpSlice.c_str();
 
     SliceType ret = Unknown;
-    if (!strcmp(sliceStr, "Programm"))
-        ret = Program;
-    else if (!strcmp(sliceStr, "var"))
-        ret = Variable;
-    else if (!strcmp(sliceStr, "verfahren"))
-        ret = Procedure;
-    else if (!strcmp(sliceStr, "funktion"))
-        ret = Function;
-    else if (!strcmp(sliceStr, "anfangen"))
-        ret = Begin;
-    else if (!strcmp(sliceStr, "ende"))
-        ret = End;
-    else if (!strcmp(sliceStr, "."))
-        ret = Point;
-    else if (!strcmp(sliceStr, ";"))
-        ret = Semicolon;
-    else if (!strcmp(sliceStr, ":"))
-        ret = Colon;
-    else if (!strcmp(sliceStr, ","))
-        ret = Comma;
-    else
+    for (int n = 0; n < RESERVED_LENGHT; n++)
+        if (!strcmp(sliceStr, Lexer::reserved[n]))
+        {
+            ret = (SliceType)n;
+            break;
+        }
+
+    if (ret == Unknown)
     {
         this->actualSlice = (char*)calloc(strlen(sliceStr), sizeof(char));
         for (int i = 0; i < strlen(sliceStr); i++)

@@ -16,6 +16,8 @@ class Lexer
 	void throwError(char* msg);
   private:
     FILE* file;
+    static char* reserved[];
+    static char  symbols[];
     char* actualSlice;
     int actualLine;
 };
