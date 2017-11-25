@@ -139,6 +139,51 @@ void Parser::compileProcedure()
 
 void Parser::compileFunction()
 {
+    //Procedure header (procedure p ( a, b : integer);)
+    SliceType next = this->lexer->nextSlice(false);
+    if (next != Function)
+        return;
+
+    this->lexer->nextSlice(true);
+    next = this->lexer->nextSlice(true);
+    if (next != Identifier)
+        this->lexer->throwError("Unexpected token, expected a procedure name", next);
+
+    next = this->lexer->nextSlice(false);
+    if (next == LeftParenthesis)
+    {
+        this->lexer->nextSlice(true);
+
+        //Variables loop
+        next = this->lexer->nextSlice(false);
+        while (next != RightParenthesis)
+        {
+            this->compileMethodVariables();
+            next = this->lexer->nextSlice(false);
+        }
+
+        next = this->lexer->nextSlice(true);
+        if (next != RightParenthesis)
+            this->lexer->throwError("Unexpected token, expected parenthesis", next);
+    }
+
+    next = this->lexer->nextSlice(true);
+    if (next != Colon)
+        this->lexer->throwError("Unexpected token, expected colon after function declaration", next);
+
+    next = this->lexer->nextSlice(true);
+    if (next != Integer && next != Boolean)
+        this->lexer->throwError("Unexpected token, expected type identifier after function declaration", next);
+
+    next = this->lexer->nextSlice(true);
+    if (next != Semicolon)
+        this->lexer->throwError("Unexpected token, expected a semicolon", next);
+
+    //Procedure body (vars and commands)
+    this->compileVariable();
+    this->compileCompoundCommand(false);
+}
+
 void Parser::compileMethodVariables()
 {
     SliceType next = this->lexer->nextSlice(true);
