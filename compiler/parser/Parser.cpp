@@ -111,7 +111,45 @@ void Parser::compileProcedure()
 
 void Parser::compileFunction()
 {
+void Parser::compileMethodVariables()
+{
+    SliceType next = this->lexer->nextSlice(true);
+    if (next == Variable)
+    {
+        next = this->lexer->nextSlice(true);
+        if (next != Identifier)
+            this->lexer->throwError("Unexpected token, expected a variable identifier", next);
+    }
+    else if (next != Identifier)
+        this->lexer->throwError("Unexpected token, expected a variable identifier", next);
 
+    next = this->lexer->nextSlice(true);
+    //Works as compileVariable()
+    while (next == Comma)
+    {
+        next = this->lexer->nextSlice(true);
+        if (next == Variable)
+        {
+            next = this->lexer->nextSlice(true);
+            if (next != Identifier)
+                this->lexer->throwError("Unexpected token, expected a variable identifier", next);
+        }
+        else if (next != Identifier)
+            this->lexer->throwError("Unexpected token, expected an identifier after comma", next);
+
+        next = this->lexer->nextSlice(true);
+    }
+
+    if (next != Colon)
+        this->lexer->throwError("Unexpected token, expected a colon", next);
+
+    next = this->lexer->nextSlice(true);
+    if (next != Integer && next != Boolean)
+        this->lexer->throwError("Unexpected token, expected a type", next);
+
+    next = this->lexer->nextSlice(true);
+    if (next != Semicolon)
+        this->lexer->throwError("Unexpected token, expected a semicolon", next);
 }
 
 void Parser::compileMain()

@@ -15,6 +15,7 @@ class Parser
     void compileVariable();
     void compileProcedure();
     void compileFunction();
+    void compileMethodVariables();
     void compileMain();
     void compileIf();
     void compileWhile();
