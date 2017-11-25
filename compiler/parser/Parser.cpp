@@ -45,49 +45,52 @@ void Parser::compileProgramInit()
 {
     SliceType next = this->lexer->nextSlice(true);
     if (next != Program)
-        this->lexer->throwError("Expected a program initialization");
+        this->lexer->throwError("Expected a program initialization", next);
 
     next = this->lexer->nextSlice(true);
     if (next != Identifier)
-        this->lexer->throwError("Unexpected token, expected a program identifier");
+        this->lexer->throwError("Unexpected token, expected a program identifier", next);
 
     next = this->lexer->nextSlice(true);
     if (next != Semicolon)
-        this->lexer->throwError("Unexpected token, expected a semicolon");
+        this->lexer->throwError("Unexpected token, expected a semicolon", next);
 }
 
 void Parser::compileVariable()
 {
-    SliceType next = this->lexer->nextSlice(true);
+    SliceType next = this->lexer->nextSlice(false);
     if (next != Variable)
-        this->lexer->throwError("Expected a variable declaration");
+        return;
 
+    this->lexer->nextSlice(true);
     next = this->lexer->nextSlice(true);
     if (next != Identifier)
-        this->lexer->throwError("Unexpected token, expected an identifier");
+        this->lexer->throwError("Unexpected token, expected an identifier", next);
 
+    //While the next is a identifier, the user is naming different types of variables
     while (next == Identifier)
     {
         next = this->lexer->nextSlice(true);
+        //While next isn't a colon, the user is naming variables
         while (next == Comma)
         {
             next = this->lexer->nextSlice(true);
             if (next != Identifier)
-                this->lexer->throwError("Unexpected token, expected an identifier after comma");
+                this->lexer->throwError("Unexpected token, expected an identifier after comma", next);
 
             next = this->lexer->nextSlice(true);
         }
 
         if (next != Colon)
-            this->lexer->throwError("Unexpected token, expected a colon");
+            this->lexer->throwError("Unexpected token, expected a colon", next);
 
         next = this->lexer->nextSlice(true);
-        if (next != Identifier)
-            this->lexer->throwError("Unexpected token, expected a type identifier");
+        if (next != Integer && next != Boolean)
+            this->lexer->throwError("Unexpected token, expected a type", next);
 
         next = this->lexer->nextSlice(true);
         if (next != Semicolon)
-            this->lexer->throwError("Unexpected token, expected a semicolon");
+            this->lexer->throwError("Unexpected token, expected a semicolon", next);
 
         next = this->lexer->nextSlice(false);
         if (next == Identifier)
@@ -113,11 +116,11 @@ void Parser::compileFunction()
 
 void Parser::compileMain()
 {
-  compileCompoundCommand();
+  compileCompoundCommand(true);
 
   SliceType next = this->lexer->nextSlice(true);
   if (next != Point)
-    this->lexer->throwError("Missing point after main");
+    this->lexer->throwError("Missing point after main", next);
 }
 
 void Parser::compileIf()
@@ -130,17 +133,22 @@ void Parser::compileWhile()
 
 }
 
-void Parser::compileCompoundCommand()
+void Parser::compileCompoundCommand(bool isMainCommand)
 {
-    SliceType next;
-
-    next = this->lexer->nextSlice(true);
+    SliceType next = this->lexer->nextSlice(true);
     if (next != Begin)
-        this->lexer->throwError("Missing opening");
+        this->lexer->throwError("Missing opening", next);
 
     //Commands
 
     next = this->lexer->nextSlice(true);
     if (next != End)
-        this->lexer->throwError("Missing closing");
+        this->lexer->throwError("Missing closing", next);
+
+    if (!isMainCommand)
+    {
+        next = this->lexer->nextSlice(true);
+        if (next != Semicolon)
+            this->lexer->throwError("Missing semicolon after end", next);
+    }
 }

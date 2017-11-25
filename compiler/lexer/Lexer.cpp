@@ -35,6 +35,8 @@ char* Lexer::reserved[] =
     "lesen",
     "wahr",
     "unwahr",
+    "ganze",
+    "boolescher",
     "nichtig"
 };
 

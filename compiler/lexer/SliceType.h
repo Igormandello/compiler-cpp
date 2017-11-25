@@ -2,7 +2,7 @@
 
 #define _SLICE_TYPE_INCLUDED_
 #define SYMBOLS_LENGHT 14
-#define RESERVED_LENGHT 29
+#define RESERVED_LENGHT 31
 typedef
     enum
     {
@@ -34,6 +34,8 @@ typedef
         Read,
         True,
         False,
+        Integer,
+        Boolean,
         Null,
         Identifier,
         Number,
