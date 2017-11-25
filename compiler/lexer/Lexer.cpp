@@ -25,7 +25,7 @@ char* Lexer::reserved[] =
     ")",
     "=",
     ">",
-    "-",
+    "<",
     "!",
     "+",
     "-",
@@ -195,10 +195,17 @@ int Lexer::getValue()
     return atoi(this->actualSlice);
 }
 
-void Lexer::throwError(char* msg)
+void Lexer::throwError(char* msg, SliceType e)
 {
     std::stringstream sstm;
-    sstm << "Exception on line " << this->actualLine << ": " << msg;
+    sstm << "Exception in line " << this->actualLine;
+
+    if (e != Unknown)
+        if (e == Identifier || e == Number)
+            sstm << ", in token \"" << this->actualSlice << "\"";
+        else
+            sstm << ", in token \"" << Lexer::reserved[e] << "\"";
+    sstm << " : " << msg;
 
     throw std::invalid_argument(sstm.str());
 }

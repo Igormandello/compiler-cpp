@@ -6,8 +6,11 @@
 class Parser
 {
   public:
-    Parser(char* fileName);
+    Parser(char*);
     ~Parser();
+    void compileProgram();
+  private:
+    Lexer* lexer;
     void compileProgramInit();
     void compileVariable();
     void compileProcedure();
@@ -15,9 +18,7 @@ class Parser
     void compileMain();
     void compileIf();
     void compileWhile();
-    void compileCompoundCommand();
-  private:
-    Lexer* lexer;
+    void compileCompoundCommand(bool);
 };
 
 #endif

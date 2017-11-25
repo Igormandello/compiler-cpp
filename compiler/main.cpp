@@ -11,16 +11,7 @@ int main()
 
     try
     {
-        p.compileProgramInit();
-        p.compileVariable();
-        //main loop
-        //switch(next)
-        //{
-        //  Procedure: p.compileProcedure();
-        //  Function : p.compileFunction();
-        //}
-        //prox = l.nextSlice(false);
-        //loop end
+        p.compileProgram();
     }
     catch (std::exception const &e)
     {

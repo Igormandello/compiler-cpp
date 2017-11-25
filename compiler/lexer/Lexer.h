@@ -7,13 +7,13 @@
 class Lexer
 {
   public:
-	Lexer(char* fileName);
+	Lexer(char*);
 	~Lexer();
-	SliceType nextSlice(bool consume);
+	SliceType nextSlice(bool);
 	bool hasMoreSlices();
 	char* getName();
 	int getValue();
-	void throwError(char* msg);
+	void throwError(char*, SliceType);
   private:
     FILE* file;
     static char* reserved[];

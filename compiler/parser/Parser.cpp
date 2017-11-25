@@ -6,13 +6,39 @@
 
 Parser::Parser(char* fileName)
 {
+    //Creates the Lexer and stores it
     Lexer* l = new Lexer("C://temp//Vierte.Reich");
     this->lexer = l;
 }
 
 Parser::~Parser()
 {
+    //Deletes the Lexer pointer
     delete(this->lexer);
+}
+
+void Parser::compileProgram()
+{
+    //Compile the program init (Program declaration and global variables)
+    compileProgramInit();
+    compileVariable();
+
+    SliceType next = this->lexer->nextSlice(false);
+    while (next != Begin)
+    {
+        //If the next token isn't a Begin, it must be a Procedure or a Function
+        switch(next)
+        {
+          case Procedure: this->compileProcedure(); break;
+          case Function : this->compileFunction(); break;
+          default       : this->lexer->throwError("Unexpected token, expected main declaration", next); break;
+        }
+
+        next = this->lexer->nextSlice(false);
+    }
+
+    //Compile the main program
+    this->compileMain();
 }
 
 void Parser::compileProgramInit()
