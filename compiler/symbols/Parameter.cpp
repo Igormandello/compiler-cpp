@@ -7,3 +7,8 @@ Parameter::Parameter(ParameterType parType, Type type, char name[255], int scope
     this->type = type;
     this->parameterType = parType;
 }
+
+ParameterType Parameter::getParameterType()
+{
+    return this->parameterType;
+}

@@ -6,10 +6,15 @@ Procedure::Procedure(char name[255], int scope) : Symbol(SymbolType_Procedure, n
 
 Type Procedure::getParameter(unsigned int i)
 {
-    this->paramatersType[i];
+    this->parametersType[i];
+}
+
+int Procedure::getParametersCount()
+{
+    return this->parametersType.size();
 }
 
 void Procedure::addParameter(Type type)
 {
-    this->paramatersType.push_back(type);
+    this->parametersType.push_back(type);
 }

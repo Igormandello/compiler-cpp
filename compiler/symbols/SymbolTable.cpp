@@ -23,7 +23,7 @@ void SymbolTable::add(Symbol* symbol)
 
 Symbol* SymbolTable::getSymbol(char* name)
 {
-    for (int n = 0; n < this->symbols.size(); n++)
+    for (int n = this->symbols.size() - 1; n >= 0; n--)
         if (!strcmp(this->symbols[n]->getName(), name))
             return this->symbols[n];
 

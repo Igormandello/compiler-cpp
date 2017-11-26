@@ -1,12 +1,16 @@
 #ifndef _PARAMETER_TYPE_H_INCLUDED_
 
 #define _PARAMETER_TYPE_H_INCLUDED_
-typedef
-    enum
-    {
-        Reference,
-        Value
-    }
-    ParameterType;
+
+namespace Symbols
+{
+    typedef
+        enum
+        {
+            Reference,
+            Value
+        }
+        ParameterType;
+}
 
 #endif

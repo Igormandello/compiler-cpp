@@ -9,11 +9,12 @@ namespace Symbols
     class Function: public Symbol
     {
         public:
-            Function(char[255], int);
+            Function(Type, char[255], int);
             Type getParameter(unsigned int i);
+            int getParametersCount();
             void addParameter(Type);
         private:
-            std::vector<Type> paramatersType;
+            std::vector<Type> parametersType;
             Type returnType;
     };
 }

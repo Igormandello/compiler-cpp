@@ -48,10 +48,11 @@ void Parser::compileProgram()
 bool Parser::redeclaredVariable(char* variableName)
 {
     Symbols::Symbol* symbol = this->symbolTable->getSymbol(variableName);
+
     if (symbol != NULL)
-        if (symbol->getSymbolType() != Symbols::SymbolType_Function && symbol->getSymbolType() != Symbols::SymbolType_Procedure)
-            if ((symbol->getSymbolType() == Symbols::SymbolType_Variable && symbol->getScope() == 0) ||
-                (symbol->getSymbolType() == Symbols::SymbolType_Parameter && symbol->getScope() == this->symbolTable->getActualScope()))
+        if (symbol->getSymbolType() == Symbols::SymbolType_Function || symbol->getSymbolType() == Symbols::SymbolType_Procedure)
+            return true;
+        else if (symbol->getSymbolType() == Symbols::SymbolType_Parameter && symbol->getScope() == this->symbolTable->getActualScope())
                 return true;
 
     return false;
@@ -62,6 +63,16 @@ void Parser::addVariables(std::vector<Symbols::Variable*> pending, SliceType typ
     if (type == Boolean)
         for (int n = 0; n < pending.size(); n++)
             this->symbolTable->add(new Symbols::Variable(Symbols::Boolean, (char*)pending[n]->getName(), pending[n]->getScope()));
+    else
+        for (int n = 0; n < pending.size(); n++)
+            this->symbolTable->add(pending[n]);
+}
+
+void Parser::addParameters(std::vector<Symbols::Parameter*> pending, SliceType type)
+{
+    if (type == Boolean)
+        for (int n = 0; n < pending.size(); n++)
+            this->symbolTable->add(new Symbols::Parameter(pending[n]->getParameterType(), Symbols::Boolean, (char*)pending[n]->getName(), pending[n]->getScope()));
     else
         for (int n = 0; n < pending.size(); n++)
             this->symbolTable->add(pending[n]);
@@ -157,6 +168,13 @@ void Parser::compileProcedure()
     if (next != Identifier)
         this->lexer->throwError("Unexpected token, expected a procedure name", next);
 
+    char* procName = this->lexer->getName();
+    Symbols::Symbol* s = this->symbolTable->getSymbol(procName);
+    if (s != NULL && s->getScope() == 0)
+        this->lexer->throwError("Procedure name can't be the same as a variable", next);
+    Symbols::Procedure* procedure = new Symbols::Procedure(procName, this->symbolTable->getActualScope());
+    this->symbolTable->add(procedure);
+
     next = this->lexer->nextSlice(false);
     if (next == LeftParenthesis)
     {
@@ -166,7 +184,7 @@ void Parser::compileProcedure()
         next = this->lexer->nextSlice(false);
         while (next != RightParenthesis)
         {
-            this->compileMethodVariables();
+            this->compileProcedureVariables(procedure);
             next = this->lexer->nextSlice(false);
         }
 
@@ -196,6 +214,13 @@ void Parser::compileFunction()
     if (next != Identifier)
         this->lexer->throwError("Unexpected token, expected a function name", next);
 
+    char* functionName = this->lexer->getName();
+    Symbols::Symbol* s = this->symbolTable->getSymbol(functionName);
+    if (s != NULL && s->getScope() == 0)
+        this->lexer->throwError("Function name can't be the same as a variable", next);
+
+    Symbols::Function* func = new Symbols::Function(Symbols::Integer, functionName, this->symbolTable->getActualScope());
+
     next = this->lexer->nextSlice(false);
     if (next == LeftParenthesis)
     {
@@ -205,7 +230,7 @@ void Parser::compileFunction()
         next = this->lexer->nextSlice(false);
         while (next != RightParenthesis)
         {
-            this->compileMethodVariables();
+            this->compileFunctionVariables(func);
             next = this->lexer->nextSlice(false);
         }
 
@@ -222,6 +247,11 @@ void Parser::compileFunction()
     if (next != Integer && next != Boolean)
         this->lexer->throwError("Unexpected token, expected type identifier after function declaration", next);
 
+    Symbols::Function* realFunc = new Symbols::Function((next == Integer ? Symbols::Integer : Symbols::Boolean), (char*)func->getName(), this->symbolTable->getActualScope());
+    for (int n = 0; n < func->getParametersCount(); n++)
+        realFunc->addParameter(func->getParameter(n));
+    this->symbolTable->add(realFunc);
+
     next = this->lexer->nextSlice(true);
     if (next != Semicolon)
         this->lexer->throwError("Unexpected token, expected a semicolon", next);
@@ -231,17 +261,25 @@ void Parser::compileFunction()
     this->compileCompoundCommand(false);
 }
 
-void Parser::compileMethodVariables()
+void Parser::compileProcedureVariables(Symbols::Procedure* proc)
 {
+    std::vector<Symbols::Parameter*> pending;
+    int variablesNumber = 0;
+
     SliceType next = this->lexer->nextSlice(true);
     if (next == Variable)
     {
         next = this->lexer->nextSlice(true);
         if (next != Identifier)
             this->lexer->throwError("Unexpected token, expected a variable identifier", next);
+
+        pending.push_back(new Symbols::Parameter(Symbols::Reference, Symbols::Integer, this->lexer->getName(), this->symbolTable->getActualScope()));
     }
     else if (next != Identifier)
         this->lexer->throwError("Unexpected token, expected a variable identifier", next);
+    else
+        pending.push_back(new Symbols::Parameter(Symbols::Value, Symbols::Integer, this->lexer->getName(), this->symbolTable->getActualScope()));
+    variablesNumber++;
 
     next = this->lexer->nextSlice(true);
     //Works as compileVariable()
@@ -253,9 +291,14 @@ void Parser::compileMethodVariables()
             next = this->lexer->nextSlice(true);
             if (next != Identifier)
                 this->lexer->throwError("Unexpected token, expected a variable identifier", next);
+
+            pending.push_back(new Symbols::Parameter(Symbols::Reference, Symbols::Integer, this->lexer->getName(), this->symbolTable->getActualScope()));
         }
         else if (next != Identifier)
             this->lexer->throwError("Unexpected token, expected an identifier after comma", next);
+        else
+            pending.push_back(new Symbols::Parameter(Symbols::Value, Symbols::Integer, this->lexer->getName(), this->symbolTable->getActualScope()));
+        variablesNumber++;
 
         next = this->lexer->nextSlice(true);
     }
@@ -266,6 +309,72 @@ void Parser::compileMethodVariables()
     next = this->lexer->nextSlice(true);
     if (next != Integer && next != Boolean)
         this->lexer->throwError("Unexpected token, expected a type", next);
+
+    this->addParameters(pending, next);
+
+    Symbols::Type type = (next == Integer ? Symbols::Integer : Symbols::Boolean);
+    for (int n = 0; n < variablesNumber; n++)
+        proc->addParameter(type);
+
+    next = this->lexer->nextSlice(true);
+    if (next != Semicolon)
+        this->lexer->throwError("Unexpected token, expected a semicolon", next);
+}
+
+void Parser::compileFunctionVariables(Symbols::Function* func)
+{
+    std::vector<Symbols::Parameter*> pending;
+    int variablesNumber = 0;
+
+    SliceType next = this->lexer->nextSlice(true);
+    if (next == Variable)
+    {
+        next = this->lexer->nextSlice(true);
+        if (next != Identifier)
+            this->lexer->throwError("Unexpected token, expected a variable identifier", next);
+
+        pending.push_back(new Symbols::Parameter(Symbols::Reference, Symbols::Integer, this->lexer->getName(), this->symbolTable->getActualScope()));
+    }
+    else if (next != Identifier)
+        this->lexer->throwError("Unexpected token, expected a variable identifier", next);
+    else
+        pending.push_back(new Symbols::Parameter(Symbols::Value, Symbols::Integer, this->lexer->getName(), this->symbolTable->getActualScope()));
+    variablesNumber++;
+
+    next = this->lexer->nextSlice(true);
+    //Works as compileVariable()
+    while (next == Comma)
+    {
+        next = this->lexer->nextSlice(true);
+        if (next == Variable)
+        {
+            next = this->lexer->nextSlice(true);
+            if (next != Identifier)
+                this->lexer->throwError("Unexpected token, expected a variable identifier", next);
+
+            pending.push_back(new Symbols::Parameter(Symbols::Reference, Symbols::Integer, this->lexer->getName(), this->symbolTable->getActualScope()));
+        }
+        else if (next != Identifier)
+            this->lexer->throwError("Unexpected token, expected an identifier after comma", next);
+        else
+            pending.push_back(new Symbols::Parameter(Symbols::Value, Symbols::Integer, this->lexer->getName(), this->symbolTable->getActualScope()));
+        variablesNumber++;
+
+        next = this->lexer->nextSlice(true);
+    }
+
+    if (next != Colon)
+        this->lexer->throwError("Unexpected token, expected a colon", next);
+
+    next = this->lexer->nextSlice(true);
+    if (next != Integer && next != Boolean)
+        this->lexer->throwError("Unexpected token, expected a type", next);
+
+    this->addParameters(pending, next);
+
+    Symbols::Type type = (next == Integer ? Symbols::Integer : Symbols::Boolean);
+    for (int n = 0; n < variablesNumber; n++)
+        func->addParameter(type);
 
     next = this->lexer->nextSlice(true);
     if (next != Semicolon)
@@ -293,6 +402,11 @@ void Parser::compileWhile()
 
 void Parser::compileCommand()
 {
+    SliceType next = this->lexer->nextSlice(false);
+    if (next != Identifier)
+        return;
+
+    this->lexer->nextSlice(true);
 }
 
 void Parser::compileCompoundCommand(bool isMainCommand)
