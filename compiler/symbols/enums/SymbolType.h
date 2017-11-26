@@ -4,7 +4,7 @@
 typedef
     enum
     {
-        SymbolType_Variable
+        SymbolType_Variable,
         SymbolType_Procedure,
         SymbolType_Function,
         SymbolType_Parameter
