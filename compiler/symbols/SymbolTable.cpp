@@ -1,6 +1,7 @@
 #include <string.h>
 #include "SymbolTable.h"
 
+using namespace Symbols;
 SymbolTable::SymbolTable()
 {
     this->actualScope = 0;
@@ -8,8 +9,8 @@ SymbolTable::SymbolTable()
 
 SymbolTable::~SymbolTable()
 {
-    for (Symbol* s : this->symbols)
-        delete(s);
+    for (int n = 0; n < this->symbols.size(); n++)
+        delete(this->symbols[n]);
 }
 
 void SymbolTable::add(Symbol* symbol)
@@ -22,9 +23,9 @@ void SymbolTable::add(Symbol* symbol)
 
 Symbol* SymbolTable::getSymbol(char* name)
 {
-    for (Symbol* s : this->symbols)
-        if (!strcmp(s->getName(), name))
-            return s;
+    for (int n = 0; n < this->symbols.size(); n++)
+        if (!strcmp(this->symbols[n]->getName(), name))
+            return this->symbols[n];
 
     return NULL;
 }

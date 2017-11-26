@@ -1,6 +1,7 @@
 #include <string.h>
 #include "Symbol.h"
 
+using namespace Symbols;
 Symbol::Symbol(SymbolType type, char name[255], int scope)
 {
     this->type = type;
@@ -20,5 +21,5 @@ const char* Symbol::getName() const
 
 unsigned int Symbol::getScope() const
 {
-
+    return this->scope;
 }

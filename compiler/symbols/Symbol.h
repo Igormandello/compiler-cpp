@@ -5,17 +5,20 @@
 #include "enums/SymbolType.h"
 #include "enums/Type.h"
 
-class Symbol
+namespace Symbols
 {
-    public:
-        Symbol(SymbolType, char[], int);
-        SymbolType getSymbolType() const;
-        const char* getName() const;
-        unsigned int getScope() const;
-    private:
-        SymbolType   type;
-        char         name [255];
-        unsigned int scope;
-};
+    class Symbol
+    {
+        public:
+            Symbol(SymbolType, char[], int);
+            SymbolType getSymbolType() const;
+            const char* getName() const;
+            unsigned int getScope() const;
+        private:
+            SymbolType   type;
+            char         name [255];
+            unsigned int scope;
+    };
+}
 
 #endif

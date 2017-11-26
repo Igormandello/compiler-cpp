@@ -3,12 +3,15 @@
 #define _VARIABLE_INCLUDED_
 #include "Symbol.h"
 
-class Variable: public Symbol
+namespace Symbols
 {
-    public:
-        Variable(Type, char[255], int);
-    private:
-        Type type;
-};
+    class Variable: public Symbol
+    {
+        public:
+            Variable(Type, char[255], int);
+        private:
+            Type type;
+    };
+}
 
 #endif

@@ -1,5 +1,6 @@
 #include "Function.h"
 
+using namespace Symbols;
 Function::Function(char name[255], int scope) : Symbol(SymbolType_Function, name, scope + 1)
 {}
 

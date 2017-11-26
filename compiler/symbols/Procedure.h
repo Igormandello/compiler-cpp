@@ -4,14 +4,17 @@
 #include <vector>
 #include "Symbol.h"
 
-class Procedure: public Symbol
+namespace Symbols
 {
-    public:
-        Procedure(char[255], int);
-        Type getParameter(unsigned int i);
-        void addParameter(Type);
-    private:
-        std::vector<Type> paramatersType;
-};
+    class Procedure: public Symbol
+    {
+        public:
+            Procedure(char[255], int);
+            Type getParameter(unsigned int i);
+            void addParameter(Type);
+        private:
+            std::vector<Type> paramatersType;
+    };
+}
 
 #endif

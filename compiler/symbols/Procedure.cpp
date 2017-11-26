@@ -1,5 +1,6 @@
 #include "Procedure.h"
 
+using namespace Symbols;
 Procedure::Procedure(char name[255], int scope) : Symbol(SymbolType_Procedure, name, scope + 1)
 {}
 

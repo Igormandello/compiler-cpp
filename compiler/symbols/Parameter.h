@@ -4,13 +4,16 @@
 #include "Symbol.h"
 #include "enums/ParameterType.h"
 
-class Parameter: public Symbol
+namespace Symbols
 {
-    public:
-        Parameter(ParameterType, Type, char[255], int);
-    private:
-        Type type;
-        ParameterType parameterType;
-};
+    class Parameter: public Symbol
+    {
+        public:
+            Parameter(ParameterType, Type, char[255], int);
+        private:
+            Type type;
+            ParameterType parameterType;
+    };
+}
 
 #endif

@@ -4,18 +4,21 @@
 #include <vector>
 #include "Symbol.h"
 
-class SymbolTable
+namespace Symbols
 {
-    public:
-        SymbolTable();
-        ~SymbolTable();
-        void add(Symbol*);
-        Symbol* getSymbol(char*);
-        void removeActualScope();
-        int getActualScope();
-    private:
-        std::vector<Symbol*> symbols;
-        unsigned int actualScope;
-};
+    class SymbolTable
+    {
+        public:
+            SymbolTable();
+            ~SymbolTable();
+            void add(Symbol*);
+            Symbol* getSymbol(char*);
+            void removeActualScope();
+            int getActualScope();
+        private:
+            std::vector<Symbol*> symbols;
+            unsigned int actualScope;
+    };
+}
 
 #endif
