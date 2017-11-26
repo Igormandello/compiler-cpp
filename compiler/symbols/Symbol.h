@@ -9,9 +9,9 @@ class Symbol
 {
     public:
         Symbol(SymbolType, char[], int);
-        //SymbolType getSymbolType();
-        //char[] getName();
-        //unsigned int getScope();
+        SymbolType getSymbolType() const;
+        const char* getName() const;
+        unsigned int getScope() const;
     private:
         SymbolType   type;
         char         name [255];

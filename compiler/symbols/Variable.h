@@ -1,7 +1,7 @@
 #ifndef _VARIABLE_INCLUDED_
 
 #define _VARIABLE_INCLUDED_
-#include "enums/Type.h"
+#include "Symbol.h"
 
 class Variable: public Symbol
 {

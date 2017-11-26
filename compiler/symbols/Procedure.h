@@ -1,6 +1,8 @@
 #ifndef _PROCEDURE_INCLUDED_
 
 #define _PROCEDURE_INCLUDED_
+#include <vector>
+#include "Symbol.h"
 
 class Procedure: public Symbol
 {
