@@ -6,15 +6,19 @@
 
 Parser::Parser(char* fileName)
 {
-    //Creates the Lexer and stores it
+    //Creates the Lexer and SymbolTable and stores they
     Lexer* l = new Lexer("C://temp//Vierte.Reich");
     this->lexer = l;
+
+    Symbols::SymbolTable* t = new Symbols::SymbolTable();
+    this->symbolTable = t;
 }
 
 Parser::~Parser()
 {
-    //Deletes the Lexer pointer
+    //Deletes the Lexer and SymbolTable pointers
     delete(this->lexer);
+    delete(this->symbolTable);
 }
 
 void Parser::compileProgram()
@@ -39,6 +43,28 @@ void Parser::compileProgram()
 
     //Compile the main program
     this->compileMain();
+}
+
+bool Parser::redeclaredVariable(char* variableName)
+{
+    Symbols::Symbol* symbol = this->symbolTable->getSymbol(variableName);
+    if (symbol != NULL)
+        if (symbol->getSymbolType() != Symbols::SymbolType_Function && symbol->getSymbolType() != Symbols::SymbolType_Procedure)
+            if ((symbol->getSymbolType() == Symbols::SymbolType_Variable && symbol->getScope() == 0) ||
+                (symbol->getSymbolType() == Symbols::SymbolType_Parameter && symbol->getScope() == this->symbolTable->getActualScope()))
+                return true;
+
+    return false;
+}
+
+void Parser::addVariables(std::vector<Symbols::Variable*> pending, SliceType type)
+{
+    if (type == Boolean)
+        for (int n = 0; n < pending.size(); n++)
+            this->symbolTable->add(new Symbols::Variable(Symbols::Boolean, (char*)pending[n]->getName(), pending[n]->getScope()));
+    else
+        for (int n = 0; n < pending.size(); n++)
+            this->symbolTable->add(pending[n]);
 }
 
 void Parser::compileProgramInit()
@@ -70,13 +96,32 @@ void Parser::compileVariable()
     //While the next is a identifier, the user is naming different types of variables
     while (next == Identifier)
     {
-        next = this->lexer->nextSlice(true);
+        //Vector to stores the variables which the type isn't known yet
+        std::vector<Symbols::Variable*> pending;
+
+        //Check the disponibility of the name
+        char* variableName = this->lexer->getName();
+        if (this->redeclaredVariable(variableName))
+            this->lexer->throwError("Redeclaration of variable", next);
+
+        Symbols::Variable* v = new Symbols::Variable(Symbols::Integer, variableName, this->symbolTable->getActualScope());
+        pending.push_back(v);
+
         //While next isn't a colon, the user is naming variables
+        next = this->lexer->nextSlice(true);
         while (next == Comma)
         {
             next = this->lexer->nextSlice(true);
             if (next != Identifier)
                 this->lexer->throwError("Unexpected token, expected an identifier after comma", next);
+
+            //Check the disponibility of the name
+            char* variableName = this->lexer->getName();
+            if (this->redeclaredVariable(variableName))
+                this->lexer->throwError("Redeclaration of variable", next);
+
+            Symbols::Variable* v = new Symbols::Variable(Symbols::Integer, variableName, this->symbolTable->getActualScope());
+            pending.push_back(v);
 
             next = this->lexer->nextSlice(true);
         }
@@ -87,6 +132,8 @@ void Parser::compileVariable()
         next = this->lexer->nextSlice(true);
         if (next != Integer && next != Boolean)
             this->lexer->throwError("Unexpected token, expected a type", next);
+
+        this->addVariables(pending, next);
 
         next = this->lexer->nextSlice(true);
         if (next != Semicolon)
@@ -147,7 +194,7 @@ void Parser::compileFunction()
     this->lexer->nextSlice(true);
     next = this->lexer->nextSlice(true);
     if (next != Identifier)
-        this->lexer->throwError("Unexpected token, expected a procedure name", next);
+        this->lexer->throwError("Unexpected token, expected a function name", next);
 
     next = this->lexer->nextSlice(false);
     if (next == LeftParenthesis)
@@ -244,6 +291,10 @@ void Parser::compileWhile()
 
 }
 
+void Parser::compileCommand()
+{
+}
+
 void Parser::compileCompoundCommand(bool isMainCommand)
 {
     SliceType next = this->lexer->nextSlice(true);
@@ -251,10 +302,21 @@ void Parser::compileCompoundCommand(bool isMainCommand)
         this->lexer->throwError("Missing opening", next);
 
     //Commands
+    next = this->lexer->nextSlice(false);
+    while (next != End)
+    {
+        if (next == If)
+            this->compileIf();
+        else if (next == While)
+            this->compileWhile();
+        else if (next != Identifier)
+            this->lexer->throwError("Unexpected token", next);
+        else
+            this->compileCommand();
 
-    next = this->lexer->nextSlice(true);
-    if (next != End)
-        this->lexer->throwError("Missing closing", next);
+        next = this->lexer->nextSlice(false);
+    }
+    this->lexer->nextSlice(true);
 
     if (!isMainCommand)
     {
