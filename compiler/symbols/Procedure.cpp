@@ -1,6 +1,6 @@
 #include "Procedure.h"
 
-Procedure::Procedure(char name[255], int scope) : Symbol(SymbolType_Procedure, name, scope)
+Procedure::Procedure(char name[255], int scope) : Symbol(SymbolType_Procedure, name, scope + 1)
 {}
 
 Type Procedure::getParameter(unsigned int i)

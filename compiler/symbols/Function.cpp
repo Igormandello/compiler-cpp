@@ -1,6 +1,6 @@
 #include "Function.h"
 
-Function::Function(char name[255], int scope) : Symbol(SymbolType_Function, name, scope)
+Function::Function(char name[255], int scope) : Symbol(SymbolType_Function, name, scope + 1)
 {}
 
 Type Function::getParameter(unsigned int i)
