@@ -4,10 +4,10 @@
 typedef
     enum
     {
-        Variable
-        Procedure,
-        Function,
-        Parameter
+        SymbolType_Variable
+        SymbolType_Procedure,
+        SymbolType_Function,
+        SymbolType_Parameter
     }
     SymbolType;
 

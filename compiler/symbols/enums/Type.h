@@ -4,8 +4,8 @@
 typedef
     enum
     {
-        Integer,
-        Boolean
+        Type_Integer,
+        Type_Boolean
     }
     Type;
 
