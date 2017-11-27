@@ -1,0 +1,38 @@
+programm p;
+
+var a, b : ganze;
+    c, d, e : boolescher;
+    f : ganze;
+
+funktion f1 (h : ganze; g : boolescher;) : boolescher;
+anfagen
+
+ende;
+
+funktion f2 (h : ganze;) : ganze;
+var g : ganze;
+anfagen
+
+ende;
+
+verfahren p (a, b : boolescher; var h : ganze;);
+var i : ganze;
+anfagen
+
+ende;
+
+anfagen
+ p(c, d, f2(a));
+ f2(12);
+
+ f := 1;
+ e := wahr;
+ d := unwahr;
+
+ solange f1(a, d) machen
+ anfagen
+ ende;
+
+ ob e dann
+  p(c, d, f2(a));
+ende.
