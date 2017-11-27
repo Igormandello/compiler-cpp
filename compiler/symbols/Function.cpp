@@ -1,4 +1,5 @@
 #include "Function.h"
+#include <iostream>
 
 using namespace Symbols;
 Function::Function(Type returnType, char name[255], int scope) : Symbol(SymbolType_Function, name, scope + 1)
@@ -6,9 +7,14 @@ Function::Function(Type returnType, char name[255], int scope) : Symbol(SymbolTy
     this->returnType = returnType;
 }
 
+Type Function::getReturnType()
+{
+    return this->returnType;
+}
+
 Type Function::getParameter(unsigned int i)
 {
-    this->parametersType[i];
+    return this->parametersType[i];
 }
 
 int Function::getParametersCount()

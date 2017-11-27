@@ -6,7 +6,7 @@ Procedure::Procedure(char name[255], int scope) : Symbol(SymbolType_Procedure, n
 
 Type Procedure::getParameter(unsigned int i)
 {
-    this->parametersType[i];
+    return this->parametersType[i];
 }
 
 int Procedure::getParametersCount()

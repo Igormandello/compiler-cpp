@@ -5,3 +5,8 @@ Variable::Variable(Type type, char name[255], int scope) : Symbol(SymbolType_Var
 {
     this->type = type;
 }
+
+Type Variable::getType()
+{
+    return this->type;
+}

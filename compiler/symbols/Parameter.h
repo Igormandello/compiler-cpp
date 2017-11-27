@@ -10,6 +10,7 @@ namespace Symbols
     {
         public:
             Parameter(ParameterType, Type, char[255], int);
+            Type getType();
             ParameterType getParameterType();
         private:
             Type type;

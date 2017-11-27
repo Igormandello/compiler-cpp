@@ -30,7 +30,7 @@ class Parser
     void compileMain();
     void compileIf();
     void compileWhile();
-    void compileCommand();
+    void compileCommand(bool);
     void compileCompoundCommand(bool);
 };
 

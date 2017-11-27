@@ -21,11 +21,25 @@ void SymbolTable::add(Symbol* symbol)
     this->symbols.push_back(symbol);
 }
 
-Symbol* SymbolTable::getSymbol(char* name)
+void SymbolTable::addScope()
 {
-    for (int n = this->symbols.size() - 1; n >= 0; n--)
-        if (!strcmp(this->symbols[n]->getName(), name))
-            return this->symbols[n];
+    this->actualScope++;
+}
+
+Symbol* SymbolTable::getSymbol(char* name, bool local)
+{
+    if (local)
+    {
+        for (int n = this->symbols.size() - 1; n >= 0; n--)
+            if (!strcmp(this->symbols[n]->getName(), name))
+                if (this->symbols[n]->getScope() == this->actualScope
+                     || this->symbols[n]->getScope() == 0)
+                    return this->symbols[n];
+    }
+    else
+        for (int n = this->symbols.size() - 1; n >= 0; n--)
+            if (!strcmp(this->symbols[n]->getName(), name))
+                return this->symbols[n];
 
     return NULL;
 }

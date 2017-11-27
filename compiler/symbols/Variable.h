@@ -9,6 +9,7 @@ namespace Symbols
     {
         public:
             Variable(Type, char[255], int);
+            Type getType();
         private:
             Type type;
     };

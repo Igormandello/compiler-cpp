@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "lexer/Lexer.h"
 #include "parser/Parser.h"
+#include "symbols/Parameter.h"
 
 using namespace std;
 int main()

@@ -10,6 +10,7 @@ namespace Symbols
     {
         public:
             Function(Type, char[255], int);
+            Type getReturnType();
             Type getParameter(unsigned int i);
             int getParametersCount();
             void addParameter(Type);

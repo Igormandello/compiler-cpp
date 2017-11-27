@@ -12,7 +12,8 @@ namespace Symbols
             SymbolTable();
             ~SymbolTable();
             void add(Symbol*);
-            Symbol* getSymbol(char*);
+            void addScope();
+            Symbol* getSymbol(char*, bool);
             void removeActualScope();
             int getActualScope();
         private:
