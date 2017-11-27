@@ -8,8 +8,8 @@ namespace Symbols
     class Variable: public Symbol
     {
         public:
-            Variable(Type, char[255], int);
-            Type getType();
+            Variable(SymbolType, Type, char[255], int) throw();
+            Type getType() const throw();
         private:
             Type type;
     };
