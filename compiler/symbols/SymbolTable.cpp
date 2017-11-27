@@ -2,18 +2,18 @@
 #include "SymbolTable.h"
 
 using namespace Symbols;
-SymbolTable::SymbolTable()
+SymbolTable::SymbolTable() throw()
 {
     this->actualScope = 0;
 }
 
-SymbolTable::~SymbolTable()
+SymbolTable::~SymbolTable() throw()
 {
     for (int n = 0; n < this->symbols.size(); n++)
         delete(this->symbols[n]);
 }
 
-void SymbolTable::add(Symbol* symbol)
+void SymbolTable::add(Symbol* symbol) throw()
 {
     if (symbol->getSymbolType() == SymbolType_Function || symbol->getSymbolType() == SymbolType_Procedure)
         this->actualScope++;
@@ -21,12 +21,12 @@ void SymbolTable::add(Symbol* symbol)
     this->symbols.push_back(symbol);
 }
 
-void SymbolTable::addScope()
+void SymbolTable::addScope() throw()
 {
     this->actualScope++;
 }
 
-Symbol* SymbolTable::getSymbol(char* name, bool local)
+Symbol* SymbolTable::getSymbol(char* name, bool local) const throw()
 {
     if (local)
     {
@@ -44,7 +44,7 @@ Symbol* SymbolTable::getSymbol(char* name, bool local)
     return NULL;
 }
 
-void SymbolTable::removeActualScope()
+void SymbolTable::removeActualScope() throw()
 {
     for (int n = this->symbols.size(); n >= 0; n++)
         if (this->symbols[n]->getScope() == this->actualScope)
@@ -53,7 +53,7 @@ void SymbolTable::removeActualScope()
     this->actualScope--;
 }
 
-int SymbolTable::getActualScope()
+int SymbolTable::getActualScope() const throw()
 {
     return this->actualScope;
 }

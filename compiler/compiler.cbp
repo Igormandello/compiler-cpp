@@ -38,12 +38,8 @@
 		<Unit filename="main.cpp" />
 		<Unit filename="parser/Parser.cpp" />
 		<Unit filename="parser/Parser.h" />
-		<Unit filename="symbols/Function.cpp" />
-		<Unit filename="symbols/Function.h" />
-		<Unit filename="symbols/Parameter.cpp" />
-		<Unit filename="symbols/Parameter.h" />
-		<Unit filename="symbols/Procedure.cpp" />
-		<Unit filename="symbols/Procedure.h" />
+		<Unit filename="symbols/Method.cpp" />
+		<Unit filename="symbols/Method.h" />
 		<Unit filename="symbols/Symbol.cpp" />
 		<Unit filename="symbols/Symbol.h" />
 		<Unit filename="symbols/SymbolTable.cpp" />
@@ -53,6 +49,14 @@
 		<Unit filename="symbols/enums/ParameterType.h" />
 		<Unit filename="symbols/enums/SymbolType.h" />
 		<Unit filename="symbols/enums/Type.h" />
+		<Unit filename="symbols/method/Function.cpp" />
+		<Unit filename="symbols/method/Function.h" />
+		<Unit filename="symbols/method/Procedure.cpp" />
+		<Unit filename="symbols/method/Procedure.h" />
+		<Unit filename="symbols/variable/LocalVariable.cpp" />
+		<Unit filename="symbols/variable/LocalVariable.h" />
+		<Unit filename="symbols/variable/Parameter.cpp" />
+		<Unit filename="symbols/variable/Parameter.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />

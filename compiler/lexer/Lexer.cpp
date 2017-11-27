@@ -58,7 +58,7 @@ char Lexer::symbols[] =
     '/'
 };
 
-Lexer::Lexer(char* c)
+Lexer::Lexer(char* c) throw(std::invalid_argument)
 {
     this->actualLine = 1;
 
@@ -69,13 +69,13 @@ Lexer::Lexer(char* c)
         throw std::invalid_argument("Invalid file");
 }
 
-Lexer::~Lexer()
+Lexer::~Lexer() throw()
 {
     free(this->actualSlice);
     fclose(this->file);
 }
 
-SliceType Lexer::nextSlice(bool consume)
+SliceType Lexer::nextSlice(bool consume)  throw()
 {
     std::stringstream slice, spaces;
     char c[2];
@@ -175,7 +175,7 @@ SliceType Lexer::nextSlice(bool consume)
     return ret;
 }
 
-bool Lexer::hasMoreSlices()
+bool Lexer::hasMoreSlices() const throw()
 {
     char c = fgetc(this->file);
 
@@ -189,17 +189,17 @@ bool Lexer::hasMoreSlices()
     return true;
 }
 
-char* Lexer::getName()
+char* Lexer::getName() const throw()
 {
     return this->actualSlice;
 }
 
-int Lexer::getValue()
+int Lexer::getValue() const throw()
 {
     return atoi(this->actualSlice);
 }
 
-void Lexer::throwError(char* msg, SliceType e)
+void Lexer::throwError(char* msg, SliceType e) const throw(std::runtime_error)
 {
     std::stringstream sstm;
     sstm << "Exception in line " << this->actualLine;
@@ -211,5 +211,5 @@ void Lexer::throwError(char* msg, SliceType e)
             sstm << ", in token \"" << Lexer::reserved[e] << "\"";
     sstm << " : " << msg;
 
-    throw std::invalid_argument(sstm.str());
+    throw std::runtime_error(sstm.str());
 }

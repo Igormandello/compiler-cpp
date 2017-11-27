@@ -10,10 +10,10 @@ namespace Symbols
     class Symbol
     {
         public:
-            Symbol(SymbolType, char[], int);
-            SymbolType getSymbolType() const;
-            const char* getName() const;
-            unsigned int getScope() const;
+            Symbol(SymbolType, char[], int) throw();
+            SymbolType getSymbolType() const throw();
+            const char* getName() const throw();
+            unsigned int getScope() const throw();
         private:
             SymbolType   type;
             char         name [255];

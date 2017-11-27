@@ -9,13 +9,13 @@ namespace Symbols
     class SymbolTable
     {
         public:
-            SymbolTable();
-            ~SymbolTable();
-            void add(Symbol*);
-            void addScope();
-            Symbol* getSymbol(char*, bool);
-            void removeActualScope();
-            int getActualScope();
+            SymbolTable() throw();
+            ~SymbolTable() throw();
+            void add(Symbol*) throw();
+            void addScope() throw();
+            Symbol* getSymbol(char*, bool) const throw();
+            void removeActualScope() throw();
+            int getActualScope() const throw();
         private:
             std::vector<Symbol*> symbols;
             unsigned int actualScope;
