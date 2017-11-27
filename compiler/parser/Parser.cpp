@@ -7,7 +7,7 @@
 Parser::Parser(char* fileName)
 {
     //Creates the Lexer and SymbolTable and stores they
-    Lexer* l = new Lexer("C://temp//Vierte.Reich");
+    Lexer* l = new Lexer(fileName);
     this->lexer = l;
 
     Symbols::SymbolTable* t = new Symbols::SymbolTable();

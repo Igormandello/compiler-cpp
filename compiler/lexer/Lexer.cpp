@@ -65,6 +65,8 @@ Lexer::Lexer(char* c)
     FILE* temp = fopen(c, "r");
     if (temp != NULL)
         this->file = fopen(c, "r");
+    else
+        throw std::invalid_argument("Invalid file");
 }
 
 Lexer::~Lexer()
