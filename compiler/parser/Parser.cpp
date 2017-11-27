@@ -21,7 +21,7 @@ Parser::~Parser()
     delete(this->symbolTable);
 }
 
-void Parser::compileProgram()
+void Parser::compileProgram() const throw(std::runtime_error)
 {
     //Compile the program init (Program declaration and global variables)
     compileProgramInit();
@@ -45,7 +45,7 @@ void Parser::compileProgram()
     this->compileMain();
 }
 
-bool Parser::redeclaredVariable(char* variableName)
+bool Parser::redeclaredVariable(char* variableName) const
 {
     Symbols::Symbol* symbol = this->symbolTable->getSymbol(variableName, true);
 
@@ -58,17 +58,17 @@ bool Parser::redeclaredVariable(char* variableName)
     return false;
 }
 
-void Parser::addVariables(std::vector<Symbols::Variable*> pending, SliceType type)
+void Parser::addVariables(std::vector<Symbols::LocalVariable*> pending, SliceType type) const
 {
     if (type == Boolean)
         for (int n = 0; n < pending.size(); n++)
-            this->symbolTable->add(new Symbols::Variable(Symbols::Boolean, (char*)pending[n]->getName(), pending[n]->getScope()));
+            this->symbolTable->add(new Symbols::LocalVariable(Symbols::Boolean, (char*)pending[n]->getName(), pending[n]->getScope()));
     else
         for (int n = 0; n < pending.size(); n++)
             this->symbolTable->add(pending[n]);
 }
 
-void Parser::addParameters(std::vector<Symbols::Parameter*> pending, SliceType type)
+void Parser::addParameters(std::vector<Symbols::Parameter*> pending, SliceType type) const
 {
     if (type == Boolean)
         for (int n = 0; n < pending.size(); n++)
@@ -78,7 +78,7 @@ void Parser::addParameters(std::vector<Symbols::Parameter*> pending, SliceType t
             this->symbolTable->add(pending[n]);
 }
 
-void Parser::compileProgramInit()
+void Parser::compileProgramInit() const
 {
     SliceType next = this->lexer->nextSlice(true);
     if (next != Program)
@@ -93,7 +93,7 @@ void Parser::compileProgramInit()
         this->lexer->throwError("Unexpected token, expected a semicolon", next);
 }
 
-void Parser::compileVariable()
+void Parser::compileVariable() const
 {
     SliceType next = this->lexer->nextSlice(false);
     if (next != Variable)
@@ -108,14 +108,14 @@ void Parser::compileVariable()
     while (next == Identifier)
     {
         //Vector to stores the variables which the type isn't known yet
-        std::vector<Symbols::Variable*> pending;
+        std::vector<Symbols::LocalVariable*> pending;
 
         //Check the disponibility of the name
         char* variableName = this->lexer->getName();
         if (this->redeclaredVariable(variableName))
             this->lexer->throwError("Redeclaration of variable", next);
 
-        Symbols::Variable* v = new Symbols::Variable(Symbols::Integer, variableName, this->symbolTable->getActualScope());
+        Symbols::LocalVariable* v = new Symbols::LocalVariable(Symbols::Integer, variableName, this->symbolTable->getActualScope());
         pending.push_back(v);
 
         //While next isn't a colon, the user is naming variables
@@ -131,8 +131,8 @@ void Parser::compileVariable()
             if (this->redeclaredVariable(variableName))
                 this->lexer->throwError("Redeclaration of variable", next);
 
-            Symbols::Variable* v2 = new Symbols::Variable(Symbols::Integer, variableName, this->symbolTable->getActualScope());
-            pending.push_back(v2);
+            Symbols::LocalVariable* v = new Symbols::LocalVariable(Symbols::Integer, variableName, this->symbolTable->getActualScope());
+            pending.push_back(v);
 
             next = this->lexer->nextSlice(true);
         }
@@ -156,7 +156,7 @@ void Parser::compileVariable()
     }
 }
 
-void Parser::compileProcedure()
+void Parser::compileProcedure() const
 {
     //Procedure header (procedure p ( a, b : integer);)
     SliceType next = this->lexer->nextSlice(false);
@@ -184,7 +184,7 @@ void Parser::compileProcedure()
         next = this->lexer->nextSlice(false);
         while (next != RightParenthesis)
         {
-            this->compileProcedureVariables(procedure);
+            this->compileMethodVariables(procedure);
             next = this->lexer->nextSlice(false);
         }
 
@@ -202,7 +202,7 @@ void Parser::compileProcedure()
     this->compileCompoundCommand(false);
 }
 
-void Parser::compileFunction()
+void Parser::compileFunction() const
 {
     //Procedure header (procedure p ( a, b : integer);)
     SliceType next = this->lexer->nextSlice(false);
@@ -230,7 +230,7 @@ void Parser::compileFunction()
         next = this->lexer->nextSlice(false);
         while (next != RightParenthesis)
         {
-            this->compileFunctionVariables(func);
+            this->compileMethodVariables(func);
             next = this->lexer->nextSlice(false);
         }
 
@@ -262,7 +262,7 @@ void Parser::compileFunction()
     this->compileCompoundCommand(false);
 }
 
-void Parser::compileProcedureVariables(Symbols::Procedure* proc)
+void Parser::compileMethodVariables(Symbols::Method* meth) const
 {
     std::vector<Symbols::Parameter*> pending;
     int variablesNumber = 0;
@@ -315,74 +315,14 @@ void Parser::compileProcedureVariables(Symbols::Procedure* proc)
 
     Symbols::Type type = (next == Integer ? Symbols::Integer : Symbols::Boolean);
     for (int n = 0; n < variablesNumber; n++)
-        proc->addParameter(type);
+        meth->addParameter(type);
 
     next = this->lexer->nextSlice(true);
     if (next != Semicolon)
         this->lexer->throwError("Unexpected token, expected a semicolon", next);
 }
 
-void Parser::compileFunctionVariables(Symbols::Function* func)
-{
-    std::vector<Symbols::Parameter*> pending;
-    int variablesNumber = 0;
-
-    SliceType next = this->lexer->nextSlice(true);
-    if (next == Variable)
-    {
-        next = this->lexer->nextSlice(true);
-        if (next != Identifier)
-            this->lexer->throwError("Unexpected token, expected a variable identifier", next);
-
-        pending.push_back(new Symbols::Parameter(Symbols::Reference, Symbols::Integer, this->lexer->getName(), this->symbolTable->getActualScope() + 1));
-    }
-    else if (next != Identifier)
-        this->lexer->throwError("Unexpected token, expected a variable identifier", next);
-    else
-        pending.push_back(new Symbols::Parameter(Symbols::Value, Symbols::Integer, this->lexer->getName(), this->symbolTable->getActualScope() + 1));
-    variablesNumber++;
-
-    next = this->lexer->nextSlice(true);
-    //Works as compileVariable()
-    while (next == Comma)
-    {
-        next = this->lexer->nextSlice(true);
-        if (next == Variable)
-        {
-            next = this->lexer->nextSlice(true);
-            if (next != Identifier)
-                this->lexer->throwError("Unexpected token, expected a variable identifier", next);
-
-            pending.push_back(new Symbols::Parameter(Symbols::Reference, Symbols::Integer, this->lexer->getName(), this->symbolTable->getActualScope() + 1));
-        }
-        else if (next != Identifier)
-            this->lexer->throwError("Unexpected token, expected an identifier after comma", next);
-        else
-            pending.push_back(new Symbols::Parameter(Symbols::Value, Symbols::Integer, this->lexer->getName(), this->symbolTable->getActualScope() + 1));
-        variablesNumber++;
-
-        next = this->lexer->nextSlice(true);
-    }
-
-    if (next != Colon)
-        this->lexer->throwError("Unexpected token, expected a colon", next);
-
-    next = this->lexer->nextSlice(true);
-    if (next != Integer && next != Boolean)
-        this->lexer->throwError("Unexpected token, expected a type", next);
-
-    this->addParameters(pending, next);
-
-    Symbols::Type type = (next == Integer ? Symbols::Integer : Symbols::Boolean);
-    for (int n = 0; n < variablesNumber; n++)
-        func->addParameter(type);
-
-    next = this->lexer->nextSlice(true);
-    if (next != Semicolon)
-        this->lexer->throwError("Unexpected token, expected a semicolon", next);
-}
-
-void Parser::compileMain()
+void Parser::compileMain() const
 {
   this->symbolTable->addScope();
   compileCompoundCommand(true);
@@ -392,7 +332,7 @@ void Parser::compileMain()
     this->lexer->throwError("Missing point after main", next);
 }
 
-void Parser::compileIf()
+void Parser::compileIf() const
 {
     SliceType next = this->lexer->nextSlice(false);
     if (next != If)
@@ -452,7 +392,7 @@ void Parser::compileIf()
         this->compileCommand(true);
 }
 
-void Parser::compileWhile()
+void Parser::compileWhile() const
 {
     SliceType next = this->lexer->nextSlice(false);
     if (next != While)
@@ -512,7 +452,7 @@ void Parser::compileWhile()
         this->compileCommand(true);
 }
 
-void Parser::compileCommand(bool endLine)
+void Parser::compileCommand(bool endLine) const
 {
     SliceType next = this->lexer->nextSlice(false);
     if (next != Identifier)
@@ -523,22 +463,22 @@ void Parser::compileCommand(bool endLine)
     if (actualSymbol == NULL)
         this->lexer->throwError("Use of undeclared variable", next);
 
-    if (actualSymbol->getSymbolType() == Symbols::SymbolType_Procedure)
+    if (actualSymbol->getSymbolType() == Symbols::SymbolType_Procedure || actualSymbol->getSymbolType() == Symbols::SymbolType_Function)
     {
-        Symbols::Procedure* actualProcedure = (Symbols::Procedure*) actualSymbol;
+        Symbols::Method* actualMethod = (Symbols::Method*) actualSymbol;
 
         next = this->lexer->nextSlice(false);
-        if (next != LeftParenthesis && actualProcedure->getParametersCount() != 0)
+        if (next != LeftParenthesis && actualMethod->getParametersCount() != 0)
             this->lexer->throwError("Expected parenthesis after a procedure call", next);
 
-        if (!(next != LeftParenthesis && actualProcedure->getParametersCount() == 0))
+        if (!(next != LeftParenthesis && actualMethod->getParametersCount() == 0))
         {
             this->lexer->nextSlice(true);
-            for (int n = 0; n < actualProcedure->getParametersCount(); n++)
+            for (int n = 0; n < actualMethod->getParametersCount(); n++)
             {
                 next = this->lexer->nextSlice(false);
 
-                Symbols::Type parameterType = actualProcedure->getParameter(n);
+                Symbols::Type parameterType = actualMethod->getParameter(n);
                 if (parameterType == Symbols::Integer)
                 {
                     if (next != Number && next != Identifier)
@@ -630,7 +570,7 @@ void Parser::compileCommand(bool endLine)
                         this->lexer->nextSlice(true);
                 }
 
-                if (n != actualProcedure->getParametersCount() - 1)
+                if (n != actualMethod->getParametersCount() - 1)
                 {
                     next = this->lexer->nextSlice(true);
                     if (next != Comma)
@@ -643,127 +583,7 @@ void Parser::compileCommand(bool endLine)
                 this->lexer->throwError("Expected parenthesis after a parameters list", next);
         }
     }
-    else if (actualSymbol->getSymbolType() == Symbols::SymbolType_Function)
-    {
-        Symbols::Function* actualFunction = (Symbols::Function*) actualSymbol;
-
-        next = this->lexer->nextSlice(false);
-        if (next != LeftParenthesis && actualFunction->getParametersCount() != 0)
-            this->lexer->throwError("Expected parenthesis after a function call", next);
-
-        if (!(next != LeftParenthesis && actualFunction->getParametersCount() == 0))
-        {
-            this->lexer->nextSlice(true);
-            for (int n = 0; n < actualFunction->getParametersCount(); n++)
-            {
-                next = this->lexer->nextSlice(false);
-
-                Symbols::Type parameterType = actualFunction->getParameter(n);
-                if (parameterType == Symbols::Integer)
-                {
-                    if (next != Number && next != Identifier)
-                        this->lexer->throwError("Invalid parameter type", next);
-                    else if (next == Identifier)
-                    {
-                        Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), false);
-                        if (s == NULL)
-                            this->lexer->throwError("Use of undeclared variable", next);
-                        else if (s->getSymbolType() == Symbols::SymbolType_Function)
-                        {
-                            Symbols::Function* var = (Symbols::Function*) s;
-                            if (var->getReturnType() != Symbols::Integer)
-                                this->lexer->throwError("Invalid parameter type", next);
-
-                            compileCommand(false);
-                        }
-                        else if (s->getSymbolType() == Symbols::SymbolType_Procedure)
-                            this->lexer->throwError("Procedures can't be used as a parameter", next);
-                        else
-                        {
-                            Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), true);
-                            if (s == NULL)
-                                this->lexer->throwError("Use of undeclared variable", next);
-                            else if (s->getSymbolType() == Symbols::SymbolType_Variable)
-                            {
-                                Symbols::Variable* var = (Symbols::Variable*) s;
-                                if (var->getType() != Symbols::Integer)
-                                   this->lexer->throwError("Invalid parameter type", next);
-
-                                this->lexer->nextSlice(true);
-                            }
-                            else if (s->getSymbolType() == Symbols::SymbolType_Parameter)
-                            {
-                                Symbols::Parameter* var = (Symbols::Parameter*) s;
-                                if (var->getType() != Symbols::Integer)
-                                   this->lexer->throwError("Invalid parameter type", next);
-
-                                this->lexer->nextSlice(true);
-                            }
-                        }
-                    }
-                    else
-                        this->lexer->nextSlice(true);
-                }
-                else
-                {
-                    if (next != True && next != False && next != Identifier)
-                        this->lexer->throwError("Invalid parameter type", next);
-                    else if (next == Identifier)
-                    {
-                        Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), false);
-                        if (s == NULL)
-                            this->lexer->throwError("Use of undeclared variable", next);
-                        else if (s->getSymbolType() == Symbols::SymbolType_Function)
-                        {
-                            Symbols::Function* var = (Symbols::Function*) s;
-                            if (var->getReturnType() != Symbols::Boolean)
-                                this->lexer->throwError("Invalid parameter type", next);
-
-                            compileCommand(false);
-                        }
-                        else if (s->getSymbolType() == Symbols::SymbolType_Procedure)
-                            this->lexer->throwError("Procedures can't be used as a parameter", next);
-                        else
-                        {
-                            Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), true);
-                            if (s == NULL)
-                                this->lexer->throwError("Use of undeclared variable", next);
-                            else if (s->getSymbolType() == Symbols::SymbolType_Variable)
-                            {
-                                Symbols::Variable* var = (Symbols::Variable*) s;
-                                if (var->getType() != Symbols::Boolean)
-                                   this->lexer->throwError("Invalid parameter type", next);
-
-                                this->lexer->nextSlice(true);
-                            }
-                            else if (s->getSymbolType() == Symbols::SymbolType_Parameter)
-                            {
-                                Symbols::Parameter* var = (Symbols::Parameter*) s;
-                                if (var->getType() != Symbols::Boolean)
-                                   this->lexer->throwError("Invalid parameter type", next);
-
-                                this->lexer->nextSlice(true);
-                            }
-                        }
-                    }
-                    else
-                        this->lexer->nextSlice(true);
-                }
-
-                if (n != actualFunction->getParametersCount() - 1)
-                {
-                    next = this->lexer->nextSlice(true);
-                    if (next != Comma)
-                        this->lexer->throwError("Unexpected token, expected a comma beetween parameters", next);
-                }
-            }
-
-            next = this->lexer->nextSlice(true);
-            if (next != RightParenthesis)
-                this->lexer->throwError("Expected parenthesis after a parameters list", next);
-        }
-    }
-    else if (actualSymbol->getSymbolType() == Symbols::SymbolType_Variable)
+    else if (actualSymbol->getSymbolType() == Symbols::SymbolType_Parameter || actualSymbol->getSymbolType() == Symbols::SymbolType_Variable)
     {
         next = this->lexer->nextSlice(true);
         if (next != Colon)
@@ -868,111 +688,6 @@ void Parser::compileCommand(bool endLine)
                 this->lexer->nextSlice(true);
         }
     }
-    else if (actualSymbol->getSymbolType() == Symbols::SymbolType_Parameter)
-    {
-        next = this->lexer->nextSlice(true);
-        if (next != Colon)
-            this->lexer->throwError("Expected assignment after a variable", next);
-
-        next = this->lexer->nextSlice(true);
-        if (next != Equal)
-            this->lexer->throwError("Expected assignment after a variable", next);
-
-        Symbols::Parameter* var = (Symbols::Parameter*) actualSymbol;
-        Symbols::Type type = var->getType();
-
-        next = this->lexer->nextSlice(false);
-        if (type == Symbols::Integer)
-        {
-            if (next != Number && next != Identifier)
-                this->lexer->throwError("Invalid parameter type", next);
-            else if (next == Identifier)
-            {
-                Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), false);
-                if (s == NULL)
-                    this->lexer->throwError("Use of undeclared variable", next);
-                else if (s->getSymbolType() == Symbols::SymbolType_Function)
-                {
-                    Symbols::Function* var = (Symbols::Function*) s;
-                    if (var->getReturnType() != Symbols::Integer)
-                        this->lexer->throwError("Invalid parameter type", next);
-
-                    compileCommand(false);
-                }
-                else if (s->getSymbolType() == Symbols::SymbolType_Procedure)
-                    this->lexer->throwError("Procedures can't be used as a parameter", next);
-                else
-                {
-                    Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), true);
-                    if (s == NULL)
-                        this->lexer->throwError("Use of undeclared variable", next);
-                    else if (s->getSymbolType() == Symbols::SymbolType_Variable)
-                    {
-                        Symbols::Variable* var = (Symbols::Variable*) s;
-                        if (var->getType() != Symbols::Integer)
-                           this->lexer->throwError("Invalid parameter type", next);
-
-                        this->lexer->nextSlice(true);
-                    }
-                    else if (s->getSymbolType() == Symbols::SymbolType_Parameter)
-                    {
-                        Symbols::Parameter* var = (Symbols::Parameter*) s;
-                        if (var->getType() != Symbols::Integer)
-                           this->lexer->throwError("Invalid parameter type", next);
-
-                        this->lexer->nextSlice(true);
-                    }
-                }
-            }
-            else
-                this->lexer->nextSlice(true);
-        }
-        else
-        {
-            if (next != True && next != False && next != Identifier)
-                this->lexer->throwError("Invalid parameter type", next);
-            else if (next == Identifier)
-            {
-                Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), false);
-                if (s == NULL)
-                    this->lexer->throwError("Use of undeclared variable", next);
-                else if (s->getSymbolType() == Symbols::SymbolType_Function)
-                {
-                    Symbols::Function* var = (Symbols::Function*) s;
-                    if (var->getReturnType() != Symbols::Boolean)
-                        this->lexer->throwError("Invalid parameter type", next);
-
-                    compileCommand(false);
-                }
-                else if (s->getSymbolType() == Symbols::SymbolType_Procedure)
-                    this->lexer->throwError("Procedures can't be used as a parameter", next);
-                else
-                {
-                    Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), true);
-                    if (s == NULL)
-                        this->lexer->throwError("Use of undeclared variable", next);
-                    else if (s->getSymbolType() == Symbols::SymbolType_Variable)
-                    {
-                        Symbols::Variable* var = (Symbols::Variable*) s;
-                        if (var->getType() != Symbols::Boolean)
-                           this->lexer->throwError("Invalid parameter type", next);
-
-                        this->lexer->nextSlice(true);
-                    }
-                    else if (s->getSymbolType() == Symbols::SymbolType_Parameter)
-                    {
-                        Symbols::Parameter* var = (Symbols::Parameter*) s;
-                        if (var->getType() != Symbols::Boolean)
-                           this->lexer->throwError("Invalid parameter type", next);
-
-                        this->lexer->nextSlice(true);
-                    }
-                }
-            }
-            else
-                this->lexer->nextSlice(true);
-        }
-    }
 
     if (endLine)
     {
@@ -982,7 +697,7 @@ void Parser::compileCommand(bool endLine)
     }
 }
 
-void Parser::compileCompoundCommand(bool isMainCommand)
+void Parser::compileCompoundCommand(bool isMainCommand) const
 {
     SliceType next = this->lexer->nextSlice(true);
     if (next != Begin)
