@@ -262,6 +262,94 @@ void Parser::compileFunction() const
     this->compileCompoundCommand(false);
 }
 
+void Parser::compileRead() const
+{
+    SliceType next = this->lexer->nextSlice(false);
+    if (next != Read)
+        return;
+
+    this->lexer->nextSlice(true);
+    next = this->lexer->nextSlice(true);
+    if (next != LeftParenthesis)
+        this->lexer->throwError("Expected parenthesis after a procedure call", next);
+
+    next = this->lexer->nextSlice(true);
+    if (next != Identifier)
+        this->lexer->throwError("Invalid parameter type, expected a variable after \"Read\"", next);
+    else
+    {
+        Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), false);
+
+        //Only variables of any type are accepted in read
+        if (s == NULL)
+            this->lexer->throwError("Use of undeclared variable", next);
+        else if (s->getSymbolType() == Symbols::SymbolType_Function || s->getSymbolType() == Symbols::SymbolType_Procedure)
+            this->lexer->throwError("Procedures and functions can't be used as a parameter for read", next);
+        else
+        {
+            Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), true);
+
+            if (s == NULL)
+                this->lexer->throwError("Use of undeclared variable", next);
+        }
+    }
+
+    next = this->lexer->nextSlice(true);
+    if (next != RightParenthesis)
+        this->lexer->throwError("Expected parenthesis after a parameters list", next);
+
+    next = this->lexer->nextSlice(true);
+    if (next != Semicolon)
+       this->lexer->throwError("Unexpected token, expected semicolon after expression", next);
+}
+
+void Parser::compileWrite() const
+{
+    SliceType next = this->lexer->nextSlice(false);
+    if (next != Write)
+        return;
+
+    this->lexer->nextSlice(true);
+    next = this->lexer->nextSlice(true);
+    if (next != LeftParenthesis)
+        this->lexer->throwError("Expected parenthesis after a procedure call", next);
+
+    next = this->lexer->nextSlice(false);
+    if (next != Number && next != True && next != False && next != Identifier)
+        this->lexer->throwError("Invalid parameter type", next);
+    else if (next == Identifier)
+    {
+        Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), false);
+
+        //Any type of variables or function can be used as a parameter in write
+        if (s == NULL)
+            this->lexer->throwError("Use of undeclared variable", next);
+        else if (s->getSymbolType() == Symbols::SymbolType_Function)
+            compileCommand(false);
+        else if (s->getSymbolType() == Symbols::SymbolType_Procedure)
+            this->lexer->throwError("Procedures can't be used as a parameter", next);
+        else
+        {
+            Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), true);
+
+            if (s == NULL)
+                this->lexer->throwError("Use of undeclared variable", next);
+            else if (s->getSymbolType() == Symbols::SymbolType_Variable || s->getSymbolType() == Symbols::SymbolType_Parameter)
+                this->lexer->nextSlice(true);
+        }
+    }
+    else
+        this->lexer->nextSlice(true);
+
+    next = this->lexer->nextSlice(true);
+    if (next != RightParenthesis)
+        this->lexer->throwError("Expected parenthesis after a parameters list", next);
+
+    next = this->lexer->nextSlice(true);
+    if (next != Semicolon)
+       this->lexer->throwError("Unexpected token, expected semicolon after expression", next);
+}
+
 void Parser::compileMethodVariables(Symbols::Method* meth) const
 {
     std::vector<Symbols::Parameter*> pending;

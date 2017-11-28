@@ -27,6 +27,8 @@ class Parser
     void compileVariable() const;
     void compileProcedure() const;
     void compileFunction() const;
+    void compileRead() const;
+    void compileWrite() const;
     void compileMethodVariables(Symbols::Method*) const;
     void compileMain() const;
     void compileIf() const;
