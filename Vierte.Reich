@@ -22,12 +22,20 @@ anfagen
 ende;
 
 anfagen
- p(c, d, f2(a));
- f2(12);
+ p(wahr, d, f2(a));
+ f2(f2(f2(12)));
 
  f := 1;
  e := wahr;
  d := unwahr;
+
+ schreiben(1235);
+ schreiben(wahr);
+ schreiben(e);
+ schreiben(f);
+ 
+ lesen(e);
+ lesen(f);
 
  solange f1(a, d) machen
  anfagen
