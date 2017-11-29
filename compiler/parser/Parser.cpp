@@ -432,6 +432,8 @@ void Parser::compileIf() const
         return;
 
     this->lexer->nextSlice(true);
+    this->booleanExpression();
+    /*
     next = this->lexer->nextSlice(false);
     if (next != True && next != False && next != Identifier)
         this->lexer->throwError("Invalid parameter type", next);
@@ -459,7 +461,7 @@ void Parser::compileIf() const
             this->lexer->nextSlice(true);
         }
     }
-
+    */
     next = this->lexer->nextSlice(true);
     if (next != Then)
         this->lexer->throwError("Unexpected token, expected \"Then\" after condition", next);
@@ -680,5 +682,123 @@ void Parser::compileCompoundCommand(bool isMainCommand) const
         next = this->lexer->nextSlice(true);
         if (next != Semicolon)
             this->lexer->throwError("Missing semicolon after end", next);
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////EXPRESSION PARSER////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Parser::arithmeticExpression() const
+{
+    this->arithmeticTerm();
+
+    SliceType next = this->lexer->nextSlice(false);
+    while (next == Plus || next == Minus)
+    {
+        this->lexer->nextSlice(true);
+        this->arithmeticTerm();
+    }
+}
+
+void Parser::arithmeticTerm() const
+{
+    this->arithmeticFactor();
+
+    SliceType next = this->lexer->nextSlice(false);
+    while (next == Times || next == Slash)
+    {
+        next = this->lexer->nextSlice(true);
+        this->arithmeticFactor();
+    }
+}
+
+void Parser::arithmeticFactor() const
+{
+    SliceType next = this->lexer->nextSlice(true);
+    if (next == Minus)
+        next = this->lexer->nextSlice(true);
+
+    if (next == Identifier)
+    {
+        Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName());
+
+        if (s->getSymbolType() == Symbols::SymbolType_Function && ((Symbols::Function*)s)->getReturnType() == Symbols::Integer)
+            this->compileCommand(false);
+        else if (s->getSymbolType() == Symbols::SymbolType_Procedure || ((Symbols::Variable*)s)->getType() != Symbols::Integer)
+            this->lexer->throwError("Can't convert to integer", next);
+    }
+    else if (next == LeftParenthesis)
+    {
+        this->arithmeticExpression();
+
+        next = this->lexer->nextSlice(true);
+        if (next != RightParenthesis)
+            this->lexer->throwError("No matching parenthesis found", next);
+    }
+    else if (next != Number)
+        this->lexer->throwError("Can't convert to integer", next);
+}
+
+void Parser::relationalExpression() const
+{
+    this->arithmeticExpression();
+
+    SliceType next = this->lexer->nextSlice(true);
+    if (next != Minor && next != Greater && next != Equal)
+        this->lexer->throwError("Unexpected symbol", next);
+
+    this->arithmeticExpression();
+}
+
+void Parser::relationalTerm() const
+{
+   this->relationalFactor();
+
+   SliceType next = this->lexer->nextSlice(false);
+   while (next == And)
+   {
+      next = this->lexer->nextSlice(true);
+      this->relationalFactor();
+   }
+}
+
+void Parser::relationalFactor() const
+{
+    SliceType next = this->lexer->nextSlice(false);
+    if (next == Not)
+        next = this->lexer->nextSlice(true);
+
+    if (next == Identifier)
+    {
+        Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName());
+
+        if (s->getSymbolType() == Symbols::SymbolType_Function && ((Symbols::Function*)s)->getReturnType() == Symbols::Boolean)
+            this->compileCommand(false);
+        else if (s->getSymbolType() == Symbols::SymbolType_Procedure || ((Symbols::Variable*)s)->getType() != Symbols::Boolean)
+            this->relationalExpression();
+    }
+    else if(next == LeftParenthesis)
+	{
+	    this->lexer->nextSlice(true);
+        this->booleanExpression();
+
+        next = this->lexer->nextSlice(true);
+        if(next != RightParenthesis)
+            this->lexer->throwError("No matching parenthesis found", next);
+	}
+    else if(next != True && next != False)
+        this->lexer->throwError("Can't convert to boolean", next);
+}
+
+void Parser::booleanExpression() const
+{
+    this->relationalTerm();
+
+    SliceType next = this->lexer->nextSlice(false);
+    while(next == Or)
+    {
+        next = this->lexer->nextSlice(true);
+        this->relationalTerm();
     }
 }
