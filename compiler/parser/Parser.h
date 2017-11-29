@@ -35,6 +35,15 @@ class Parser
     void compileWhile() const;
     void compileCommand(bool) const;
     void compileCompoundCommand(bool) const;
+
+    //Expression Parser
+    void arithmeticExpression() const;
+    void arithmeticTerm() const;
+    void arithmeticFactor() const;
+    void relationalExpression() const;
+    void relationalTerm() const;
+    void relationalFactor() const;
+    void booleanExpression() const;
 };
 
 #endif

@@ -75,10 +75,20 @@ void Parser::addParameters(std::vector<Symbols::Parameter*> pending, SliceType t
     //Run through the pending parameters and add they to the symbolTable
     if (type == Boolean)
         for (int n = 0; n < pending.size(); n++)
+        {
+            if (this->redeclaredVariable((char*)pending[n]->getName()))
+                this->lexer->throwError("Redeclared variable", Unknown);
+
             this->symbolTable->add(new Symbols::Parameter(pending[n]->getParameterType(), Symbols::Boolean, (char*)pending[n]->getName(), pending[n]->getScope()));
+        }
     else
         for (int n = 0; n < pending.size(); n++)
+        {
+            if (this->redeclaredVariable((char*)pending[n]->getName()))
+                this->lexer->throwError("Redeclared variable", Unknown);
+
             this->symbolTable->add(pending[n]);
+        }
 }
 
 void Parser::compileProgramInit() const
