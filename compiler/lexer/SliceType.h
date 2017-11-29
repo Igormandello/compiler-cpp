@@ -1,8 +1,8 @@
 #ifndef _SLICE_TYPE_INCLUDED_
 
 #define _SLICE_TYPE_INCLUDED_
-#define SYMBOLS_LENGHT 14
-#define RESERVED_LENGHT 31
+#define SYMBOLS_LENGHT 13
+#define RESERVED_LENGHT 33
 typedef
     enum
     {
@@ -22,10 +22,12 @@ typedef
         Comma,
         LeftParenthesis,
         RightParenthesis,
+        Or,
+        And,
         Equal,
         Greater,
         Minor,
-        Exclamation,
+        Not,
         Plus,
         Minus,
         Times,

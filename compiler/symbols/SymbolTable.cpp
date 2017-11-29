@@ -32,8 +32,8 @@ Symbol* SymbolTable::getSymbol(char* name, bool local) const throw()
     {
         for (int n = this->symbols.size() - 1; n >= 0; n--)
             if (!strcmp(this->symbols[n]->getName(), name))
-                if (this->symbols[n]->getScope() == this->actualScope
-                     || this->symbols[n]->getScope() == 0)
+                if ((this->symbols[n]->getScope() == this->actualScope || this->symbols[n]->getScope() == 0)
+                    || this->symbols[n]->getSymbolType() == SymbolType_Function || this->symbols[n]->getSymbolType() == SymbolType_Procedure)
                     return this->symbols[n];
     }
     else
