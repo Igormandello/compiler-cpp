@@ -26,19 +26,12 @@ void SymbolTable::addScope() throw()
     this->actualScope++;
 }
 
-Symbol* SymbolTable::getSymbol(char* name, bool local) const throw()
+Symbol* SymbolTable::getSymbol(char* name) const throw()
 {
-    if (local)
-    {
-        for (int n = this->symbols.size() - 1; n >= 0; n--)
-            if (!strcmp(this->symbols[n]->getName(), name))
-                if ((this->symbols[n]->getScope() == this->actualScope || this->symbols[n]->getScope() == 0)
-                    || this->symbols[n]->getSymbolType() == SymbolType_Function || this->symbols[n]->getSymbolType() == SymbolType_Procedure)
-                    return this->symbols[n];
-    }
-    else
-        for (int n = this->symbols.size() - 1; n >= 0; n--)
-            if (!strcmp(this->symbols[n]->getName(), name))
+    for (int n = this->symbols.size() - 1; n >= 0; n--)
+        if (!strcmp(this->symbols[n]->getName(), name))
+            if ((this->symbols[n]->getScope() == this->actualScope || this->symbols[n]->getScope() == 0)
+                || this->symbols[n]->getSymbolType() == SymbolType_Function || this->symbols[n]->getSymbolType() == SymbolType_Procedure)
                 return this->symbols[n];
 
     return NULL;

@@ -10,6 +10,7 @@ namespace Symbols
         public:
             Function(Type, char[255], int) throw();
             Type getReturnType() const throw();
+            void setReturnType(Type) throw();
         private:
             Type returnType;
     };

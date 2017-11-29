@@ -47,13 +47,13 @@ void Parser::compileProgram() const throw(std::runtime_error)
 
 bool Parser::redeclaredVariable(char* variableName) const
 {
-    Symbols::Symbol* symbol = this->symbolTable->getSymbol(variableName, true);
+    Symbols::Symbol* symbol = this->symbolTable->getSymbol(variableName);
 
     //Check if the variable already exists in the local
     if (symbol != NULL)
         if (symbol->getSymbolType() == Symbols::SymbolType_Function || symbol->getSymbolType() == Symbols::SymbolType_Procedure)
             return true;
-        else if (symbol->getSymbolType() == Symbols::SymbolType_Parameter && symbol->getScope() == this->symbolTable->getActualScope())
+        else if (symbol->getSymbolType() == Symbols::SymbolType_Parameter)
             return true;
 
     return false;
@@ -183,12 +183,13 @@ void Parser::compileProcedure() const
         this->lexer->throwError("Unexpected token, expected a procedure name", next);
 
     char* procName = this->lexer->getName();
-    Symbols::Symbol* s = this->symbolTable->getSymbol(procName, false);
+    Symbols::Symbol* s = this->symbolTable->getSymbol(procName);
     if (s != NULL)
-        if ((s->getSymbolType() == Symbols::SymbolType_Variable && s->getScope() == 0) || (s->getSymbolType() == Symbols::SymbolType_Function || s->getSymbolType() == Symbols::SymbolType_Procedure))
+        if (s->getSymbolType() == Symbols::SymbolType_Variable || (s->getSymbolType() == Symbols::SymbolType_Function || s->getSymbolType() == Symbols::SymbolType_Procedure))
             this->lexer->throwError("Redeclared identifier", next);
 
     Symbols::Procedure* procedure = new Symbols::Procedure(procName, this->symbolTable->getActualScope());
+    this->symbolTable->add(procedure);
 
     next = this->lexer->nextSlice(false);
     if (next == LeftParenthesis)
@@ -199,7 +200,7 @@ void Parser::compileProcedure() const
         next = this->lexer->nextSlice(false);
         while (next != RightParenthesis)
         {
-            this->compileMethodVariables(procedure);
+            this->compileMethodParameters(procedure);
             next = this->lexer->nextSlice(false);
         }
 
@@ -211,8 +212,6 @@ void Parser::compileProcedure() const
     next = this->lexer->nextSlice(true);
     if (next != Semicolon)
         this->lexer->throwError("Unexpected token, expected a semicolon", next);
-
-    this->symbolTable->add(procedure);
 
     //Procedure body (vars and commands)
     this->compileVariable();
@@ -232,12 +231,13 @@ void Parser::compileFunction() const
         this->lexer->throwError("Unexpected token, expected a function name", next);
 
     char* functionName = this->lexer->getName();
-    Symbols::Symbol* s = this->symbolTable->getSymbol(functionName, false);
+    Symbols::Symbol* s = this->symbolTable->getSymbol(functionName);
     if (s != NULL)
         if ((s->getSymbolType() == Symbols::SymbolType_Variable && s->getScope() == 0) || (s->getSymbolType() == Symbols::SymbolType_Function || s->getSymbolType() == Symbols::SymbolType_Procedure))
             this->lexer->throwError("Redeclared identifier", next);
 
     Symbols::Function* func = new Symbols::Function(Symbols::Integer, functionName, this->symbolTable->getActualScope());
+    this->symbolTable->add(func);
 
     next = this->lexer->nextSlice(false);
     if (next == LeftParenthesis)
@@ -248,7 +248,7 @@ void Parser::compileFunction() const
         next = this->lexer->nextSlice(false);
         while (next != RightParenthesis)
         {
-            this->compileMethodVariables(func);
+            this->compileMethodParameters(func);
             next = this->lexer->nextSlice(false);
         }
 
@@ -265,11 +265,7 @@ void Parser::compileFunction() const
     if (next != Integer && next != Boolean)
         this->lexer->throwError("Unexpected token, expected type identifier after function declaration", next);
 
-    Symbols::Function* realFunc = new Symbols::Function((next == Integer ? Symbols::Integer : Symbols::Boolean), (char*)func->getName(), this->symbolTable->getActualScope());
-    for (int n = 0; n < func->getParametersCount(); n++)
-        realFunc->addParameter(func->getParameter(n));
-
-    this->symbolTable->add(realFunc);
+    func->setReturnType((next == Integer ? Symbols::Integer : Symbols::Boolean));
 
     next = this->lexer->nextSlice(true);
     if (next != Semicolon)
@@ -296,20 +292,13 @@ void Parser::compileRead() const
         this->lexer->throwError("Invalid parameter type, expected a variable after \"Read\"", next);
     else
     {
-        Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), false);
+        Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName());
 
         //Only variables of any type are accepted in read
         if (s == NULL)
             this->lexer->throwError("Use of undeclared variable", next);
         else if (s->getSymbolType() == Symbols::SymbolType_Function || s->getSymbolType() == Symbols::SymbolType_Procedure)
             this->lexer->throwError("Procedures and functions can't be used as a parameter for read", next);
-        else
-        {
-            Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), true);
-
-            if (s == NULL)
-                this->lexer->throwError("Use of undeclared variable", next);
-        }
     }
 
     next = this->lexer->nextSlice(true);
@@ -337,7 +326,7 @@ void Parser::compileWrite() const
         this->lexer->throwError("Invalid parameter type", next);
     else if (next == Identifier)
     {
-        Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), false);
+        Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName());
 
         //Any type of variables or function can be used as a parameter in write
         if (s == NULL)
@@ -346,15 +335,8 @@ void Parser::compileWrite() const
             compileCommand(false);
         else if (s->getSymbolType() == Symbols::SymbolType_Procedure)
             this->lexer->throwError("Procedures can't be used as a parameter", next);
-        else
-        {
-            Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), true);
-
-            if (s == NULL)
-                this->lexer->throwError("Use of undeclared variable", next);
-            else if (s->getSymbolType() == Symbols::SymbolType_Variable || s->getSymbolType() == Symbols::SymbolType_Parameter)
-                this->lexer->nextSlice(true);
-        }
+        else if (s->getSymbolType() == Symbols::SymbolType_Variable || s->getSymbolType() == Symbols::SymbolType_Parameter)
+            this->lexer->nextSlice(true);
     }
     else
         this->lexer->nextSlice(true);
@@ -368,10 +350,9 @@ void Parser::compileWrite() const
        this->lexer->throwError("Unexpected token, expected semicolon after expression", next);
 }
 
-void Parser::compileMethodVariables(Symbols::Method* meth) const
+void Parser::compileMethodParameters(Symbols::Method* meth) const
 {
-    //Adds 1 to the scope of symbolTable, because the function or procedure isn't yet added to the symbolTable
-    int actualScope = this->symbolTable->getActualScope() + 1;
+    int actualScope = this->symbolTable->getActualScope();
 
     //All variables are added to pending, because we already don't know the actual type of they
     std::vector<Symbols::Parameter*> pending;
@@ -390,6 +371,7 @@ void Parser::compileMethodVariables(Symbols::Method* meth) const
         this->lexer->throwError("Unexpected token, expected a variable identifier", next);
     else
         pending.push_back(new Symbols::Parameter(Symbols::Value, Symbols::Integer, this->lexer->getName(), actualScope));
+
     variablesNumber++;
 
     next = this->lexer->nextSlice(true);
@@ -455,7 +437,7 @@ void Parser::compileIf() const
         this->lexer->throwError("Invalid parameter type", next);
     else if (next == Identifier)
     {
-        Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), false);
+        Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName());
         if (s == NULL)
             this->lexer->throwError("Use of undeclared variable", next);
         else if (s->getSymbolType() == Symbols::SymbolType_Function)
@@ -470,18 +452,11 @@ void Parser::compileIf() const
             this->lexer->throwError("Procedures can't be used as a parameter", next);
         else
         {
-            //If it isn't a function or a procedure, getSymbol is called again but searching for only local variables
-            Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), true);
-            if (s == NULL)
-                this->lexer->throwError("Use of undeclared variable", next);
-            else if (s->getSymbolType() == Symbols::SymbolType_Variable || s->getSymbolType() == Symbols::SymbolType_Parameter)
-            {
-                Symbols::Variable* var = (Symbols::Variable*) s;
-                if (var->getType() != Symbols::Boolean)
-                   this->lexer->throwError("Condition type must be a boolean", next);
+            Symbols::Variable* var = (Symbols::Variable*) s;
+            if (var->getType() != Symbols::Boolean)
+               this->lexer->throwError("Condition type must be a boolean", next);
 
-                this->lexer->nextSlice(true);
-            }
+            this->lexer->nextSlice(true);
         }
     }
 
@@ -508,7 +483,7 @@ void Parser::compileWhile() const
         this->lexer->throwError("Invalid parameter type", next);
     else if (next == Identifier)
     {
-        Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), false);
+        Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName());
 
         if (s == NULL)
             this->lexer->throwError("Use of undeclared variable", next);
@@ -524,19 +499,11 @@ void Parser::compileWhile() const
             this->lexer->throwError("Procedures can't be used as a parameter", next);
         else
         {
-            //If it isn't a function or a procedure, getSymbol is called again but searching for only local variables
-            Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), true);
+            Symbols::Variable* var = (Symbols::Variable*) s;
+            if (var->getType() != Symbols::Boolean)
+               this->lexer->throwError("Condition type must be a boolean", next);
 
-            if (s == NULL)
-                this->lexer->throwError("Use of undeclared variable", next);
-            else if (s->getSymbolType() == Symbols::SymbolType_Variable || s->getSymbolType() == Symbols::SymbolType_Parameter)
-            {
-                Symbols::Variable* var = (Symbols::Variable*) s;
-                if (var->getType() != Symbols::Boolean)
-                   this->lexer->throwError("Condition type must be a boolean", next);
-
-                this->lexer->nextSlice(true);
-            }
+            this->lexer->nextSlice(true);
         }
     }
 
@@ -558,7 +525,7 @@ void Parser::compileCommand(bool endLine) const
         return;
 
     this->lexer->nextSlice(true);
-    Symbols::Symbol* actualSymbol = this->symbolTable->getSymbol(this->lexer->getName(), false);
+    Symbols::Symbol* actualSymbol = this->symbolTable->getSymbol(this->lexer->getName());
     if (actualSymbol == NULL)
         this->lexer->throwError("Use of undeclared variable", next);
 
@@ -585,7 +552,7 @@ void Parser::compileCommand(bool endLine) const
                     this->lexer->throwError("Invalid parameter type", next);
                 else if (next == Identifier)
                 {
-                    Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), false);
+                    Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName());
                     if (s == NULL)
                         this->lexer->throwError("Use of undeclared variable", next);
                     else if (s->getSymbolType() == Symbols::SymbolType_Function)
@@ -601,17 +568,11 @@ void Parser::compileCommand(bool endLine) const
                         this->lexer->throwError("Procedures can't be used as a parameter", next);
                     else
                     {
-                        Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), true);
-                        if (s == NULL)
-                            this->lexer->throwError("Use of undeclared variable", next);
-                        else if (s->getSymbolType() == Symbols::SymbolType_Variable || s->getSymbolType() == Symbols::SymbolType_Parameter)
-                        {
-                            Symbols::Variable* var = (Symbols::Variable*) s;
-                            if (var->getType() != parameterType)
-                               this->lexer->throwError("Invalid parameter type", next);
+                        Symbols::Variable* var = (Symbols::Variable*) s;
+                        if (var->getType() != parameterType)
+                           this->lexer->throwError("Invalid parameter type", next);
 
-                            this->lexer->nextSlice(true);
-                        }
+                        this->lexer->nextSlice(true);
                     }
                 }
                 else
@@ -649,7 +610,7 @@ void Parser::compileCommand(bool endLine) const
                 this->lexer->throwError("Invalid parameter type", next);
             else if (next == Identifier)
             {
-                Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), false);
+                Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName());
 
                 if (s == NULL)
                     this->lexer->throwError("Use of undeclared variable", next);
@@ -665,19 +626,11 @@ void Parser::compileCommand(bool endLine) const
                     this->lexer->throwError("Procedures can't be used as a parameter", next);
                 else
                 {
-                    //Calls getSymbol with only local symbols, because the actual symbol isn't a function or a procedure
-                    Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName(), true);
+                    Symbols::Variable* var = (Symbols::Variable*) s;
+                    if (var->getType() != type)
+                       this->lexer->throwError("Invalid parameter type", next);
 
-                    if (s == NULL)
-                        this->lexer->throwError("Use of undeclared variable", next);
-                    else if (s->getSymbolType() == Symbols::SymbolType_Variable || s->getSymbolType() == Symbols::SymbolType_Parameter)
-                    {
-                        Symbols::Variable* var = (Symbols::Variable*) s;
-                        if (var->getType() != type)
-                           this->lexer->throwError("Invalid parameter type", next);
-
-                        this->lexer->nextSlice(true);
-                    }
+                    this->lexer->nextSlice(true);
                 }
             }
             else

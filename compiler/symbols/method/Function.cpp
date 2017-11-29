@@ -8,6 +8,11 @@ Function::Function(Type returnType, char name[255], int scope) throw() : Method(
     this->returnType = returnType;
 }
 
+void Function::setReturnType(Type type) throw()
+{
+    this->returnType = type;
+}
+
 Type Function::getReturnType() const throw()
 {
     return this->returnType;

@@ -13,7 +13,7 @@ namespace Symbols
             ~SymbolTable() throw();
             void add(Symbol*) throw();
             void addScope() throw();
-            Symbol* getSymbol(char*, bool) const throw();
+            Symbol* getSymbol(char*) const throw();
             void removeActualScope() throw();
             int getActualScope() const throw();
         private:
