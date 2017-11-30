@@ -28,7 +28,7 @@ char* Lexer::reserved[] =
     "=",
     ">",
     "<",
-    "not",
+    "nicht",
     "+",
     "-",
     "*",

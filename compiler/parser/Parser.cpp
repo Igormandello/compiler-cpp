@@ -698,6 +698,8 @@ void Parser::arithmeticExpression() const
     {
         this->lexer->nextSlice(true);
         this->arithmeticTerm();
+
+        next = this->lexer->nextSlice(false);
     }
 }
 
@@ -708,8 +710,10 @@ void Parser::arithmeticTerm() const
     SliceType next = this->lexer->nextSlice(false);
     while (next == Times || next == Slash)
     {
-        next = this->lexer->nextSlice(true);
+        this->lexer->nextSlice(true);
         this->arithmeticFactor();
+
+        next = this->lexer->nextSlice(false);
     }
 }
 
@@ -758,8 +762,10 @@ void Parser::relationalTerm() const
    SliceType next = this->lexer->nextSlice(false);
    while (next == And)
    {
-      next = this->lexer->nextSlice(true);
+      this->lexer->nextSlice(true);
       this->relationalFactor();
+
+      next = this->lexer->nextSlice(false);
    }
 }
 
@@ -767,7 +773,10 @@ void Parser::relationalFactor() const
 {
     SliceType next = this->lexer->nextSlice(false);
     if (next == Not)
-        next = this->lexer->nextSlice(true);
+    {
+        this->lexer->nextSlice(true);
+        next = this->lexer->nextSlice(false);
+    }
 
     if (next == Identifier)
     {
@@ -775,8 +784,10 @@ void Parser::relationalFactor() const
 
         if (s->getSymbolType() == Symbols::SymbolType_Function && ((Symbols::Function*)s)->getReturnType() == Symbols::Boolean)
             this->compileCommand(false);
-        else if (s->getSymbolType() == Symbols::SymbolType_Procedure || ((Symbols::Variable*)s)->getType() != Symbols::Boolean)
+        else if (s->getSymbolType() != Symbols::SymbolType_Procedure && ((Symbols::Variable*)s)->getType() != Symbols::Boolean)
             this->relationalExpression();
+        else
+            this->lexer->throwError("Can't convert to boolean", next);
     }
     else if(next == LeftParenthesis)
 	{
@@ -784,11 +795,13 @@ void Parser::relationalFactor() const
         this->booleanExpression();
 
         next = this->lexer->nextSlice(true);
-        if(next != RightParenthesis)
+        if (next != RightParenthesis)
             this->lexer->throwError("No matching parenthesis found", next);
 	}
     else if(next != True && next != False)
         this->lexer->throwError("Can't convert to boolean", next);
+    else
+        this->lexer->nextSlice(true);
 }
 
 void Parser::booleanExpression() const
@@ -798,7 +811,9 @@ void Parser::booleanExpression() const
     SliceType next = this->lexer->nextSlice(false);
     while(next == Or)
     {
-        next = this->lexer->nextSlice(true);
+        this->lexer->nextSlice(true);
         this->relationalTerm();
+
+        next = this->lexer->nextSlice(false);
     }
 }
