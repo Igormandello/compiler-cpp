@@ -7,39 +7,39 @@
 
 char* Lexer::reserved[] =
 {
-    "programm",
-    "var",
-    "verfahren",
-    "funktion",
-    "ob",
-    "dann",
-    "solange",
-    "machen",
-    "anfagen",
-    "ende",
+    "programm",   //Program
+    "var",        //Variable
+    "verfahren",  //Procedure
+    "funktion",   //Function
+    "ob",         //If
+    "dann",       //Then
+    "solange",    //While
+    "machen",     //Do
+    "anfagen",    //Begin
+    "ende",       //End
     ".",
     ";",
     ":",
     ",",
     "(",
     ")",
-    "oder",
-    "und",
+    "oder",       //Or
+    "und",        //And
     "=",
     ">",
     "<",
-    "nicht",
+    "nicht",      //Not
     "+",
     "-",
     "*",
     "/",
-    "schreiben",
-    "lesen",
-    "wahr",
-    "unwahr",
-    "ganze",
-    "boolescher",
-    "nichtig"
+    "schreiben",  //Write
+    "lesen",      //Read
+    "wahr",       //True
+    "unwahr",     //False
+    "ganze",      //Integer
+    "boolescher", //Boolean
+    "nichtig"     //Null
 };
 
 char Lexer::symbols[] =
