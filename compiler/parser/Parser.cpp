@@ -127,6 +127,8 @@ void Parser::compileVariable() const
         char* variableName = this->lexer->getName();
         if (this->redeclaredVariable(variableName))
             this->lexer->throwError("Redeclaration of variable", next);
+        else if (isdigit(variableName[0]))
+            this->lexer->throwError("Invalid variable name, first character can't be a digit", next);
 
         Symbols::LocalVariable* v = new Symbols::LocalVariable(Symbols::Integer, variableName, this->symbolTable->getActualScope());
         pending.push_back(v);
@@ -143,6 +145,8 @@ void Parser::compileVariable() const
             char* variableName = this->lexer->getName();
             if (this->redeclaredVariable(variableName))
                 this->lexer->throwError("Redeclaration of variable", next);
+            else if (isdigit(variableName[0]))
+                this->lexer->throwError("Invalid variable name", next);
 
             Symbols::LocalVariable* v = new Symbols::LocalVariable(Symbols::Integer, variableName, this->symbolTable->getActualScope());
             pending.push_back(v);
@@ -188,6 +192,8 @@ void Parser::compileProcedure() const
         if (s->getSymbolType() == Symbols::SymbolType_Variable || (s->getSymbolType() == Symbols::SymbolType_Function || s->getSymbolType() == Symbols::SymbolType_Procedure))
             this->lexer->throwError("Redeclared identifier", next);
 
+    if (isdigit(procName[0]))
+        this->lexer->throwError("Invalid procedure name, first character can't be a digit", next);
     Symbols::Procedure* procedure = new Symbols::Procedure(procName, this->symbolTable->getActualScope());
     this->symbolTable->add(procedure);
 
@@ -236,6 +242,8 @@ void Parser::compileFunction() const
         if ((s->getSymbolType() == Symbols::SymbolType_Variable && s->getScope() == 0) || (s->getSymbolType() == Symbols::SymbolType_Function || s->getSymbolType() == Symbols::SymbolType_Procedure))
             this->lexer->throwError("Redeclared identifier", next);
 
+    if (isdigit(functionName[0]))
+        this->lexer->throwError("Invalid function name, first character can't be a digit", next);
     Symbols::Function* func = new Symbols::Function(Symbols::Integer, functionName, this->symbolTable->getActualScope());
     this->symbolTable->add(func);
 
@@ -372,6 +380,8 @@ void Parser::compileMethodParameters(Symbols::Method* meth) const
     else
         pending.push_back(new Symbols::Parameter(Symbols::Value, Symbols::Integer, this->lexer->getName(), actualScope));
 
+    if (isdigit(this->lexer->getName()[0]))
+        this->lexer->throwError("Invalid parameter name, first character can't be a digit", next);
     variablesNumber++;
 
     next = this->lexer->nextSlice(true);
@@ -391,6 +401,9 @@ void Parser::compileMethodParameters(Symbols::Method* meth) const
             this->lexer->throwError("Unexpected token, expected an identifier after comma", next);
         else
             pending.push_back(new Symbols::Parameter(Symbols::Value, Symbols::Integer, this->lexer->getName(), actualScope));
+
+        if (isdigit(this->lexer->getName()[0]))
+            this->lexer->throwError("Invalid parameter name, first character can't be a digit", next);
         variablesNumber++;
 
         next = this->lexer->nextSlice(true);
@@ -673,6 +686,19 @@ void Parser::relationalExpression() const
     SliceType next = this->lexer->nextSlice(true);
     if (next != Minor && next != Greater && next != Equal)
         this->lexer->throwError("Unexpected symbol after a integer", next);
+
+    if (next == Minor)
+    {
+        next = this->lexer->nextSlice(false);
+        if (next == Greater || next == Equal)
+            this->lexer->nextSlice(true);
+    }
+    else if (next == Greater)
+    {
+        next = this->lexer->nextSlice(false);
+        if (next == Equal)
+            this->lexer->nextSlice(true);
+    }
 
     this->arithmeticExpression();
 }
