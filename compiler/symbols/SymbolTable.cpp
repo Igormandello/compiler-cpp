@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string.h>
 #include "SymbolTable.h"
 
@@ -28,6 +29,9 @@ void SymbolTable::addScope() throw()
 
 Symbol* SymbolTable::getSymbol(char* name) const throw()
 {
+    for (int n = 0; n < strlen(name); n++)
+        name[n] = (char)tolower(name[n]);
+
     for (int n = this->symbols.size() - 1; n >= 0; n--)
         if (!strcmp(this->symbols[n]->getName(), name))
             if ((this->symbols[n]->getScope() == this->actualScope || this->symbols[n]->getScope() == 0)

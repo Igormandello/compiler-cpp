@@ -100,7 +100,7 @@ SliceType Lexer::nextSlice(bool consume)  throw()
     for (int n = 0; n < SYMBOLS_LENGHT; n++)
         if (c[0] == Lexer::symbols[n])
         {
-            slice << c[0];
+            slice << (char)tolower(c[0]);
             isSymbol = true;
             break;
         }
@@ -109,7 +109,7 @@ SliceType Lexer::nextSlice(bool consume)  throw()
     {
         while (c[0] != ' ' && c[0] != '\n' && c[0] != '\t' && c[0] != EOF)
         {
-            slice << c[0];
+            slice << (char)tolower(c[0]);
 
             if (!feof(this->file))
                 c[0] = fgetc(this->file);

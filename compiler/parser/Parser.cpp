@@ -55,6 +55,8 @@ bool Parser::redeclaredVariable(char* variableName) const
             return true;
         else if (symbol->getSymbolType() == Symbols::SymbolType_Parameter)
             return true;
+        else if (symbol->getScope() == this->symbolTable->getActualScope())
+            return true;
 
     return false;
 }
@@ -64,10 +66,16 @@ void Parser::addVariables(std::vector<Symbols::LocalVariable*> pending, SliceTyp
     //Run through the pending variables and add they to the symbolTable
     if (type == Boolean)
         for (int n = 0; n < pending.size(); n++)
-            this->symbolTable->add(new Symbols::LocalVariable(Symbols::Boolean, (char*)pending[n]->getName(), pending[n]->getScope()));
+            if (this->redeclaredVariable((char*)pending[n]->getName()))
+                this->lexer->throwError("Redeclared variable", Unknown);
+            else
+                this->symbolTable->add(new Symbols::LocalVariable(Symbols::Boolean, (char*)pending[n]->getName(), pending[n]->getScope()));
     else
         for (int n = 0; n < pending.size(); n++)
-            this->symbolTable->add(pending[n]);
+            if (this->redeclaredVariable((char*)pending[n]->getName()))
+                this->lexer->throwError("Redeclared variable", Unknown);
+            else
+                this->symbolTable->add(pending[n]);
 }
 
 void Parser::addParameters(std::vector<Symbols::Parameter*> pending, SliceType type) const
@@ -125,9 +133,7 @@ void Parser::compileVariable() const
 
         //Check the disponibility of the name
         char* variableName = this->lexer->getName();
-        if (this->redeclaredVariable(variableName))
-            this->lexer->throwError("Redeclaration of variable", next);
-        else if (isdigit(variableName[0]))
+        if (isdigit(variableName[0]))
             this->lexer->throwError("Invalid variable name, first character can't be a digit", next);
 
         Symbols::LocalVariable* v = new Symbols::LocalVariable(Symbols::Integer, variableName, this->symbolTable->getActualScope());
@@ -143,9 +149,7 @@ void Parser::compileVariable() const
 
             //Check the disponibility of the name
             char* variableName = this->lexer->getName();
-            if (this->redeclaredVariable(variableName))
-                this->lexer->throwError("Redeclaration of variable", next);
-            else if (isdigit(variableName[0]))
+            if (isdigit(variableName[0]))
                 this->lexer->throwError("Invalid variable name", next);
 
             Symbols::LocalVariable* v = new Symbols::LocalVariable(Symbols::Integer, variableName, this->symbolTable->getActualScope());
