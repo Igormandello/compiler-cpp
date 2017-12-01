@@ -433,35 +433,7 @@ void Parser::compileIf() const
 
     this->lexer->nextSlice(true);
     this->booleanExpression();
-    /*
-    next = this->lexer->nextSlice(false);
-    if (next != True && next != False && next != Identifier)
-        this->lexer->throwError("Invalid parameter type", next);
-    else if (next == Identifier)
-    {
-        Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName());
-        if (s == NULL)
-            this->lexer->throwError("Use of undeclared variable", next);
-        else if (s->getSymbolType() == Symbols::SymbolType_Function)
-        {
-            Symbols::Function* f = (Symbols::Function*) s;
-            if (f->getReturnType() != Symbols::Boolean)
-                this->lexer->throwError("Invalid parameter type", next);
 
-            compileCommand(false);
-        }
-        else if (s->getSymbolType() == Symbols::SymbolType_Procedure)
-            this->lexer->throwError("Procedures can't be used as a parameter", next);
-        else
-        {
-            Symbols::Variable* var = (Symbols::Variable*) s;
-            if (var->getType() != Symbols::Boolean)
-               this->lexer->throwError("Condition type must be a boolean", next);
-
-            this->lexer->nextSlice(true);
-        }
-    }
-    */
     next = this->lexer->nextSlice(true);
     if (next != Then)
         this->lexer->throwError("Unexpected token, expected \"Then\" after condition", next);
@@ -480,34 +452,7 @@ void Parser::compileWhile() const
         return;
 
     this->lexer->nextSlice(true);
-    next = this->lexer->nextSlice(false);
-    if (next != True && next != False && next != Identifier)
-        this->lexer->throwError("Invalid parameter type", next);
-    else if (next == Identifier)
-    {
-        Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName());
-
-        if (s == NULL)
-            this->lexer->throwError("Use of undeclared variable", next);
-        else if (s->getSymbolType() == Symbols::SymbolType_Function)
-        {
-            Symbols::Function* f = (Symbols::Function*) s;
-            if (f->getReturnType() != Symbols::Boolean)
-                this->lexer->throwError("Invalid parameter type", next);
-
-            compileCommand(false);
-        }
-        else if (s->getSymbolType() == Symbols::SymbolType_Procedure)
-            this->lexer->throwError("Procedures can't be used as a parameter", next);
-        else
-        {
-            Symbols::Variable* var = (Symbols::Variable*) s;
-            if (var->getType() != Symbols::Boolean)
-               this->lexer->throwError("Condition type must be a boolean", next);
-
-            this->lexer->nextSlice(true);
-        }
-    }
+    this->booleanExpression();
 
     next = this->lexer->nextSlice(true);
     if (next != Do)
@@ -607,36 +552,10 @@ void Parser::compileCommand(bool endLine) const
             Symbols::Variable* var = (Symbols::Variable*) actualSymbol;
             Symbols::Type type = var->getType();
 
-            next = this->lexer->nextSlice(false);
-            if ((type == Symbols::Integer && (next != Number && next != Identifier)) || (type == Symbols::Boolean && (next != True && next != False && next != Identifier)))
-                this->lexer->throwError("Invalid parameter type", next);
-            else if (next == Identifier)
-            {
-                Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName());
-
-                if (s == NULL)
-                    this->lexer->throwError("Use of undeclared variable", next);
-                else if (s->getSymbolType() == Symbols::SymbolType_Function)
-                {
-                    Symbols::Function* var = (Symbols::Function*) s;
-                    if (var->getReturnType() != type)
-                        this->lexer->throwError("Invalid parameter type", next);
-
-                    compileCommand(false);
-                }
-                else if (s->getSymbolType() == Symbols::SymbolType_Procedure)
-                    this->lexer->throwError("Procedures can't be used as a parameter", next);
-                else
-                {
-                    Symbols::Variable* var = (Symbols::Variable*) s;
-                    if (var->getType() != type)
-                       this->lexer->throwError("Invalid parameter type", next);
-
-                    this->lexer->nextSlice(true);
-                }
-            }
+            if (type == Symbols::Integer)
+                this->arithmeticExpression();
             else
-                this->lexer->nextSlice(true);
+                this->booleanExpression();
         }
         else
             this->lexer->throwError("Use of undeclared variable", next);
@@ -670,6 +589,7 @@ void Parser::compileCompoundCommand(bool isMainCommand) const
             this->compileRead();
         else if (next != Identifier)
             this->lexer->throwError("Unexpected token", next);
+        else
             this->compileCommand(true);
 
         next = this->lexer->nextSlice(false);
@@ -727,6 +647,8 @@ void Parser::arithmeticFactor() const
     {
         Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName());
 
+        if (s == NULL)
+            this->lexer->throwError("Use of undeclared variable", next);
         if (s->getSymbolType() == Symbols::SymbolType_Function && ((Symbols::Function*)s)->getReturnType() == Symbols::Integer)
             this->compileCommand(false);
         else if (s->getSymbolType() == Symbols::SymbolType_Procedure || ((Symbols::Variable*)s)->getType() != Symbols::Integer)
@@ -750,7 +672,7 @@ void Parser::relationalExpression() const
 
     SliceType next = this->lexer->nextSlice(true);
     if (next != Minor && next != Greater && next != Equal)
-        this->lexer->throwError("Unexpected symbol", next);
+        this->lexer->throwError("Unexpected symbol after a integer", next);
 
     this->arithmeticExpression();
 }
@@ -782,12 +704,16 @@ void Parser::relationalFactor() const
     {
         Symbols::Symbol* s = this->symbolTable->getSymbol(this->lexer->getName());
 
+        if (s == NULL)
+            this->lexer->throwError("Use of undeclared variable", next);
         if (s->getSymbolType() == Symbols::SymbolType_Function && ((Symbols::Function*)s)->getReturnType() == Symbols::Boolean)
             this->compileCommand(false);
-        else if (s->getSymbolType() != Symbols::SymbolType_Procedure && ((Symbols::Variable*)s)->getType() != Symbols::Boolean)
+        else if (s->getSymbolType() == Symbols::SymbolType_Procedure)
+            this->lexer->throwError("Can't convert to boolean", next);
+        else if (((Symbols::Variable*)s)->getType() != Symbols::Boolean)
             this->relationalExpression();
         else
-            this->lexer->throwError("Can't convert to boolean", next);
+            this->lexer->nextSlice(true);
     }
     else if(next == LeftParenthesis)
 	{
