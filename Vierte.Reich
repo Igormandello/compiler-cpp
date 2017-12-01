@@ -1,22 +1,22 @@
 programm p;
 
 var a, b : ganze;
-    c, d, e : boolescher;
-    f : ganze;
+    c, d, e, f : boolescher;
+    g, h : ganze;
 
-funktion f1 (h : ganze; g : boolescher;) : boolescher;
+funktion f1 (p : ganze; g : boolescher;) : boolescher;
 anfagen
 
 ende;
 
-funktion f2 (h : ganze;) : ganze;
-var g : ganze;
+funktion f2 (b : ganze;) : ganze;
+var f : ganze;
 anfagen
 
 ende;
 
-verfahren p (a, b : boolescher; var h : ganze;);
-var i : ganze;
+verfahren p (p1, w : boolescher; c : ganze;);
+var a : ganze;
 anfagen
 
 ende;
@@ -25,22 +25,27 @@ anfagen
  p(wahr, d, f2(a));
  f2(f2(f2(12)));
 
- f := 1;
+ a := 1;
  e := wahr;
  d := unwahr;
+ c := f1(1, wahr);
+
+ c := nicht d oder f;
+ f := a <> b und f und nicht(e oder d oder g + h >= 7);
+ h := (a + b - h) * 5 / 6;
 
  schreiben(1235);
  schreiben(wahr);
  schreiben(e);
- schreiben(f);
+ schreiben(g);
  
  lesen(e);
- lesen(f);
+ lesen(g);
 
- solange f1(a, d) machen
- anfagen
- ende;
+ solange e oder d machen
+   lesen(e);
+ 
+ ob a <= b oder nicht(b + a + b > g und wahr) dann
+   p(c, d, f2(a));
 
- ob e dann
-  p(c, d, f2(a));
 ende.
