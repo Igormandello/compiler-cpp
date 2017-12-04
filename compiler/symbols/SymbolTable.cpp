@@ -8,6 +8,14 @@ SymbolTable::SymbolTable() throw()
     this->actualScope = 0;
 }
 
+SymbolTable::SymbolTable(const SymbolTable& st) throw()
+{
+    this->actualScope = st.actualScope;
+
+    for (int n = 0; n < st.symbols.size(); n++)
+        this->symbols.push_back(st.symbols[n]);
+}
+
 SymbolTable::~SymbolTable() throw()
 {
     for (int n = 0; n < this->symbols.size(); n++)

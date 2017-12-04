@@ -14,8 +14,9 @@
 class Parser
 {
   public:
-    Parser(char*);
-    ~Parser();
+    Parser(char*) throw(std::invalid_argument);
+    Parser(const Parser&) throw();
+    ~Parser() throw();
     void compileProgram() const throw(std::runtime_error);
   private:
     Lexer* lexer;

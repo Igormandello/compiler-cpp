@@ -4,7 +4,7 @@
 #include <string>
 #include "Parser.h"
 
-Parser::Parser(char* fileName)
+Parser::Parser(char* fileName) throw(std::invalid_argument)
 {
     //Creates the Lexer and SymbolTable and stores they
     Lexer* l = new Lexer(fileName);
@@ -14,7 +14,13 @@ Parser::Parser(char* fileName)
     this->symbolTable = t;
 }
 
-Parser::~Parser()
+Parser::Parser(const Parser& p) throw()
+{
+    this->lexer = new Lexer(*p.lexer);
+    this->symbolTable = new Symbols::SymbolTable(*p.symbolTable);
+}
+
+Parser::~Parser() throw()
 {
     //Deletes the Lexer and SymbolTable pointers
     delete(this->lexer);

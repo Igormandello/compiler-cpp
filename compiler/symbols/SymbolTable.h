@@ -10,6 +10,7 @@ namespace Symbols
     {
         public:
             SymbolTable() throw();
+            SymbolTable(const SymbolTable&) throw();
             ~SymbolTable() throw();
             void add(Symbol*) throw();
             void addScope() throw();

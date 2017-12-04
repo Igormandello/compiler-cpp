@@ -70,6 +70,12 @@ Lexer::Lexer(char* c) throw(std::invalid_argument)
         throw std::invalid_argument("Invalid file");
 }
 
+Lexer::Lexer(const Lexer& l) throw()
+{
+    this->actualLine = l.actualLine;
+    this->file = l.file;
+}
+
 Lexer::~Lexer() throw()
 {
     free(this->actualSlice);
@@ -142,19 +148,17 @@ SliceType Lexer::nextSlice(bool consume)  throw()
     if (ret == Unknown)
     {
         this->actualSlice = (char*)calloc(strlen(sliceStr), sizeof(char));
+        strcpy(this->actualSlice, sliceStr);
+
         for (int i = 0; i < strlen(sliceStr); i++)
             if (!isdigit(sliceStr[i]))
             {
-                strcpy(this->actualSlice, sliceStr);
                 ret = Identifier;
                 break;
             }
 
         if (ret == Unknown)
-        {
-            strcpy(this->actualSlice, sliceStr);
             ret = Number;
-        }
     }
 
     if (!consume)

@@ -9,6 +9,7 @@ class Lexer
 {
   public:
 	Lexer(char*) throw(std::invalid_argument);
+	Lexer(const Lexer&) throw();
 	~Lexer() throw();
 	SliceType nextSlice(bool) throw();
 	bool hasMoreSlices() const throw();
