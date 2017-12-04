@@ -3,14 +3,14 @@
 #include "parser/Parser.h"
 
 using namespace std;
-int main()
+int main(int argc, char* argv[])
 {
-    std::string fileName;
-    cin >> fileName;
-
     try
     {
-        Parser p ((char*)fileName.c_str());
+        if (argc != 2)
+            throw std::invalid_argument("Usage: compiler.exe <filename>");
+
+        Parser p (argv[1]);
 
         p.compileProgram();
         cout << "So far, so good";

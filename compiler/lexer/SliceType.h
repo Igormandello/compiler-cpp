@@ -12,6 +12,7 @@ typedef
         Function,
         If,
         Then,
+        Else,
         While,
         Do,
         Begin,

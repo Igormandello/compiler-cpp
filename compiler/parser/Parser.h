@@ -35,7 +35,7 @@ class Parser
     void compileIf() const;
     void compileWhile() const;
     void compileCommand(bool) const;
-    void compileCompoundCommand(bool) const;
+    void compileCompoundCommand() const;
 
     //Expression Parser
     void arithmeticExpression() const;

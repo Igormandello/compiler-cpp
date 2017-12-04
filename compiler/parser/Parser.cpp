@@ -231,7 +231,11 @@ void Parser::compileProcedure() const
 
     //Procedure body (vars and commands)
     this->compileVariable();
-    this->compileCompoundCommand(false);
+    this->compileCompoundCommand();
+
+    next = this->lexer->nextSlice(true);
+    if (next != Semicolon)
+        this->lexer->throwError("Unexpected token, expected a semicolon after end", next);
 }
 
 void Parser::compileFunction() const
@@ -289,9 +293,13 @@ void Parser::compileFunction() const
     if (next != Semicolon)
         this->lexer->throwError("Unexpected token, expected a semicolon", next);
 
-    //Procedure body (vars and commands)
+    //Function body (vars and commands)
     this->compileVariable();
-    this->compileCompoundCommand(false);
+    this->compileCompoundCommand();
+
+    next = this->lexer->nextSlice(true);
+    if (next != Semicolon)
+        this->lexer->throwError("Unexpected token, expected a semicolon after end", next);
 }
 
 void Parser::compileRead() const
@@ -441,7 +449,7 @@ void Parser::compileMethodParameters(Symbols::Method* meth) const
 void Parser::compileMain() const
 {
   this->symbolTable->addScope();
-  compileCompoundCommand(true);
+  compileCompoundCommand();
 
   SliceType next = this->lexer->nextSlice(true);
   if (next != Point)
@@ -459,13 +467,67 @@ void Parser::compileIf() const
 
     next = this->lexer->nextSlice(true);
     if (next != Then)
-        this->lexer->throwError("Unexpected token, expected \"Then\" after condition", next);
+        this->lexer->throwError("Unexpected token, expected \"Dann\" after condition", next);
 
     next = this->lexer->nextSlice(false);
     if (next == Begin)
-        this->compileCompoundCommand(false);
+    {
+        this->compileCompoundCommand();
+
+        next = this->lexer->nextSlice(false);
+        if (next == Else)
+        {
+            this->lexer->nextSlice(true);
+
+            next = this->lexer->nextSlice(false);
+            if (next == If)
+                this->compileIf();
+            else if (next == Begin)
+                this->compileCompoundCommand();
+            else
+                this->compileCommand(true);
+
+            next = this->lexer->nextSlice(false);
+            if (next != Semicolon)
+                this->lexer->throwError("Missing semicolon after end", next);
+        }
+        else
+        {
+            next = this->lexer->nextSlice(true);
+            if (next != Semicolon)
+                this->lexer->throwError("Missing semicolon after end", next);
+        }
+    }
     else
-        this->compileCommand(true);
+    {
+        this->compileCommand(false);
+
+        next = this->lexer->nextSlice(false);
+        if (next == Else)
+        {
+            this->lexer->nextSlice(true);
+
+            next = this->lexer->nextSlice(false);
+            if (next == If)
+                this->compileIf();
+            else if (next == Begin)
+            {
+                this->compileCompoundCommand();
+
+                next = this->lexer->nextSlice(false);
+                if (next != Semicolon)
+                    this->lexer->throwError("Missing semicolon after end", next);
+            }
+            else
+                this->compileCommand(true);
+        }
+        else
+        {
+            next = this->lexer->nextSlice(true);
+            if (next != Semicolon)
+                this->lexer->throwError("Missing semicolon after end", next);
+        }
+    }
 }
 
 void Parser::compileWhile() const
@@ -479,11 +541,17 @@ void Parser::compileWhile() const
 
     next = this->lexer->nextSlice(true);
     if (next != Do)
-        this->lexer->throwError("Unexpected token, expected \"Do\" after condition", next);
+        this->lexer->throwError("Unexpected token, expected \"Machen\" after condition", next);
 
     next = this->lexer->nextSlice(false);
     if (next == Begin)
-        this->compileCompoundCommand(false);
+    {
+        this->compileCompoundCommand();
+
+        next = this->lexer->nextSlice(true);
+        if (next != Semicolon)
+            this->lexer->throwError("Missing semicolon after end", next);
+    }
     else
         this->compileCommand(true);
 }
@@ -592,7 +660,7 @@ void Parser::compileCommand(bool endLine) const
     }
 }
 
-void Parser::compileCompoundCommand(bool isMainCommand) const
+void Parser::compileCompoundCommand() const
 {
     SliceType next = this->lexer->nextSlice(true);
     if (next != Begin)
@@ -618,14 +686,6 @@ void Parser::compileCompoundCommand(bool isMainCommand) const
         next = this->lexer->nextSlice(false);
     }
     this->lexer->nextSlice(true);
-
-    //If isn't the main compound command, it expects a semicolon after end
-    if (!isMainCommand)
-    {
-        next = this->lexer->nextSlice(true);
-        if (next != Semicolon)
-            this->lexer->throwError("Missing semicolon after end", next);
-    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

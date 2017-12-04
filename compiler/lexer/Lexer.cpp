@@ -13,6 +13,7 @@ char* Lexer::reserved[] =
     "funktion",   //Function
     "ob",         //If
     "dann",       //Then
+    "sonst",      //Else
     "solange",    //While
     "machen",     //Do
     "anfagen",    //Begin
@@ -62,6 +63,11 @@ char Lexer::symbols[] =
 Lexer::Lexer(char* c) throw(std::invalid_argument)
 {
     this->actualLine = 1;
+
+    int len = strlen(c);
+    if ((char)tolower(c[len - 1]) != 'h' || (char)tolower(c[len - 2]) != 'c' ||
+        (char)tolower(c[len - 3]) != 'r' || (char)tolower(c[len - 4]) != '.')
+        throw std::invalid_argument("Invalid file extension");
 
     FILE* temp = fopen(c, "r");
     if (temp != NULL)
